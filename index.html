@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>电子发票设置</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="platform-brand">
+        <span class="brand-mark">收</span>
+        <span class="platform-title">收钱吧掌柜</span>
+      </div>
+      <div class="top-account">
+        <button class="plain-btn" aria-label="消息">◔</button>
+        <button class="plain-btn" aria-label="通知">♧</button>
+        <span class="avatar">刘</span>
+        <button class="plain-btn">刘辰浩</button>
+      </div>
+    </header>
+
+    <div class="shell">
+      <aside class="sidebar" aria-label="左侧菜单">
+        <div class="side-section">
+          <button class="side-parent">数据报表</button>
+          <button class="side-parent">客户管理</button>
+        </div>
+        <div class="side-section">
+          <button class="side-parent expanded active-parent">G　集团客户</button>
+          <button class="side-child active">我的客户</button>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="page-view active" id="productsView" aria-label="客户产品管理">
+          <div class="breadcrumb page-breadcrumb">主页　/　客户详情</div>
+          <section class="customer-summary">
+            <div class="customer-summary-main">
+              <p class="summary-eyebrow">我的客户详情</p>
+              <h1>集团商户一号</h1>
+              <div class="summary-tags"><span>集团客户</span><span>客户编号：160247730638</span></div>
+            </div>
+            <dl>
+              <div><dt>销售人员</dt><dd>张珺</dd></div>
+              <div><dt>销售组织</dt><dd>大客户 / 总部 / Stanley的组织</dd></div>
+              <div><dt>创建时间</dt><dd>2019-11-01 13:48</dd></div>
+            </dl>
+          </section>
+          <div class="brand-tabs" role="tablist" aria-label="客户详情">
+            <button class="active" data-customer-tab="companyListPanel">公司列表</button>
+            <button data-customer-tab="productFeaturePanel">产品功能</button>
+            <button>品牌列表</button>
+          </div>
+          <section class="customer-tab-panel active" id="companyListPanel">
+            <div class="company-toolbar">
+              <div class="company-filters">
+                <label><span>公司：</span><input id="companyKeyword" placeholder="公司名称/统一社会信用代码" /></label>
+                <label><span>公司类型：</span><select id="companyTypeFilter"><option value="">请选择公司类型</option><option value="Head">总公司</option><option value="Branch">分公司</option></select></label>
+                <label><span>发票状态：</span><select id="companyInvoiceStatusFilter"><option value="">全部状态</option><option value="Unopened">未开通</option><option value="Opening">开通中</option><option value="Opened">已开通</option><option value="Failed">开通失败</option></select></label>
+                <button class="primary-btn" id="companySearchBtn">查询</button>
+                <button class="default-btn" id="companyResetBtn">重置</button>
+              </div>
+              <div class="company-toolbar-actions">
+                <button class="primary-btn" id="createCompanyBtn">创建公司</button>
+                <button class="default-btn" id="batchCreateCompanyBtn">批量创建公司</button>
+                <button class="default-btn" id="batchEnableInvoiceBtn">批量开通发票</button>
+                <button class="default-btn" id="batchAssociateStoresBtn">批量关联门店</button>
+                <button class="default-btn" id="batchOperationRecordsBtn">批量操作记录</button>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table class="data-table company-table">
+                <thead><tr><th>公司名称</th><th>统一社会信用代码</th><th>类型</th><th>上级公司</th><th>发票功能状态</th><th class="action-col">操作</th></tr></thead>
+                <tbody id="companyRows"></tbody>
+              </table>
+            </div>
+            <div class="company-pagination"><span id="companyTotal">共0条</span><button class="page-arrow" disabled>‹</button><button class="page-current">1</button><button class="page-arrow" disabled>›</button><select aria-label="每页条数"><option>10 条/页</option></select></div>
+          </section>
+          <section class="customer-tab-panel" id="productFeaturePanel">
+            <div class="product-grid single">
+              <article class="product-card">
+                <div class="product-card-head">
+                  <h3>电子发票</h3>
+                  <span class="status-dot enabled">已开通</span>
+                </div>
+                <p>聚合不同开票服务商能力，覆盖线上线下、多端场景。</p>
+                <button class="ghost-btn primary" id="enterEinvoiceBtn">设置</button>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <section class="page-view" id="companyDetailView" aria-label="公司详情">
+          <section class="company-detail-summary">
+            <div class="company-detail-title-row">
+              <div>
+                <div class="breadcrumb">我的客户 / 集团商户一号 / 公司详情</div>
+                <div class="company-detail-name-line">
+                  <h1 id="companyDetailName">-</h1>
+                  <span class="company-type" id="companyDetailType">-</span>
+                </div>
+                <div class="company-detail-identifiers">
+                  <span>统一社会信用代码：<strong id="companyDetailUscc">-</strong></span>
+                  <span>公司ID：<strong id="companyDetailCode">-</strong> <button class="copy-btn" id="copyCompanyCodeBtn" type="button" aria-label="复制公司ID">▣</button></span>
+                </div>
+              </div>
+              <div class="head-actions">
+                <button class="default-btn" id="editCompanyDetailBtn">编辑信息</button>
+                <button class="default-btn" id="backFromCompanyDetailBtn">返回客户详情</button>
+              </div>
+            </div>
+            <dl class="company-detail-meta">
+              <div><dt>所属客户</dt><dd>集团商户一号</dd></div>
+              <div><dt>上级公司</dt><dd id="companyDetailParent">-</dd></div>
+              <div><dt>创建时间</dt><dd id="companyDetailCreatedAt">-</dd></div>
+              <div><dt>备注</dt><dd id="companyDetailRemark">-</dd></div>
+            </dl>
+          </section>
+
+          <section class="panel company-detail-content">
+            <div class="workspace-tabs company-detail-tabs" role="tablist" aria-label="公司详情">
+              <button class="active" data-company-detail-tab="companyFunctionStatusPanel">功能状态</button>
+              <button id="companyBranchesTab" data-company-detail-tab="companyBranchesPanel">分公司管理</button>
+              <button data-company-detail-tab="companyStoresPanel">门店管理</button>
+            </div>
+            <section class="company-detail-tab-panel active" id="companyFunctionStatusPanel">
+              <div class="section-heading"><h2>功能列表</h2><p class="section-description">查看并管理该公司已开通的产品功能。</p></div>
+              <button class="company-function-card" id="companyInvoiceFunctionCard" type="button">
+                <div class="company-function-icon">票</div>
+                <div class="company-function-copy"><strong>发票</strong><span id="companyInvoiceFunctionDescription">-</span><small class="danger-text hidden" id="companyInvoiceFailureReason">-</small></div>
+                <span class="company-invoice-status" id="companyDetailInvoiceStatus">未开通</span>
+                <span class="company-function-arrow">›</span>
+              </button>
+            </section>
+            <section class="company-detail-tab-panel" id="companyBranchesPanel">
+              <div class="company-branch-toolbar">
+                <label>分公司：<input id="companyBranchKeyword" placeholder="公司ID / 公司名称 / 统一社会信用代码" /></label>
+                <button class="primary-btn" id="searchCompanyBranchesBtn">查询</button>
+                <button class="default-btn" id="resetCompanyBranchesBtn">重置</button>
+              </div>
+              <div class="table-scroll">
+                <table class="data-table wide">
+                  <thead><tr><th>公司名称</th><th>统一社会信用代码</th><th>备注</th><th>公司ID</th><th>创建时间</th><th>操作</th></tr></thead>
+                  <tbody id="companyBranchRows"></tbody>
+                </table>
+              </div>
+              <div class="company-pagination"><span id="companyBranchTotal">共0条</span><button class="page-arrow" disabled>‹</button><button class="page-current">1</button><button class="page-arrow" disabled>›</button><select aria-label="分公司每页条数"><option>10 条/页</option></select></div>
+            </section>
+            <section class="company-detail-tab-panel" id="companyStoresPanel">
+              <div class="company-store-filters">
+                <label>所属品牌<select id="companyStoreBrandFilter"><option value="">全部品牌</option></select></label>
+                <label>门店名<input id="companyStoreNameFilter" placeholder="请输入门店名" /></label>
+                <label>门店号<input id="companyStoreNoFilter" placeholder="请输入门店号" /></label>
+                <label>门店ID<input id="companyStoreIdFilter" placeholder="请输入门店ID" /></label>
+                <button class="primary-btn" id="searchCompanyStoresBtn">查询</button>
+                <button class="default-btn" id="resetCompanyStoresBtn">重置</button>
+              </div>
+              <div class="table-toolbar actions-only company-store-actions"><button class="primary-btn" id="addManagedStoresBtn">添加管理门店</button></div>
+              <div class="table-scroll">
+                <table class="data-table wide">
+                  <thead><tr><th>门店名</th><th>门店号</th><th>门店ID</th><th>所属品牌</th><th>操作</th></tr></thead>
+                  <tbody id="companyStoreRows"></tbody>
+                </table>
+              </div>
+              <div class="company-pagination"><span id="companyStoreTotal">共0条</span><button class="page-arrow" disabled>‹</button><button class="page-current">1</button><button class="page-arrow" disabled>›</button><select aria-label="门店每页条数"><option>10 条/页</option></select></div>
+            </section>
+          </section>
+        </section>
+
+        <section class="page-view" id="companyBatchView" aria-label="公司批量操作">
+          <div class="settings-head">
+            <div>
+              <div class="breadcrumb">我的客户 / 集团商户一号 / 公司列表 / <span id="batchBreadcrumb">批量创建公司</span></div>
+              <h1 id="batchPageTitle">批量创建公司</h1>
+              <div class="head-tags"><span>客户编号：160247730638</span></div>
+            </div>
+            <div class="head-actions"><button class="default-btn" id="backCompanyListBtn">返回客户详情</button><button class="link-btn" id="batchRecordsShortcutBtn">批量操作记录</button></div>
+          </div>
+          <div class="batch-stepper" id="batchStepper">
+            <div class="batch-step active" data-batch-step="1"><span>1</span><strong>上传文件</strong></div>
+            <i></i>
+            <div class="batch-step" data-batch-step="2"><span>2</span><strong>检查文件</strong></div>
+            <i></i>
+            <div class="batch-step" data-batch-step="3"><span>3</span><strong id="batchExecuteStepName">执行导入</strong></div>
+          </div>
+          <section class="panel batch-workspace">
+            <div class="batch-stage active" data-batch-stage="1">
+              <div class="batch-upload-section">
+                <h2>1. 下载模板</h2>
+                <p id="batchTemplateHint">请下载批量创建公司模板，按模板填写公司信息。</p>
+                <div class="batch-template-fields" id="batchTemplateFields" aria-label="模板字段"></div>
+                <button class="default-btn" id="downloadBatchTemplateBtn">下载模板</button>
+              </div>
+              <div class="batch-upload-section divider-top">
+                <h2>2. 上传文件</h2>
+                <p>支持 xlsx 格式，文件大小不超过 5MB</p>
+                <button class="batch-upload-box" id="selectBatchFileBtn" type="button"><span class="upload-icon">⇧</span><strong>点击选择示例文件</strong><small>也可拖拽文件到此区域上传</small></button>
+                <div class="batch-file-card hidden" id="batchFileCard"><div><strong id="batchFileName">-</strong><small>文件已上传，可开始检查</small></div><button class="link-btn danger" id="removeBatchFileBtn">移除</button></div>
+                <button class="primary-btn batch-primary-action" id="startBatchCheckBtn" disabled>开始检查</button>
+              </div>
+            </div>
+            <div class="batch-stage" data-batch-stage="2">
+              <div class="batch-result-head"><div class="batch-stats"><span>总行数：<strong id="batchCheckTotal">0</strong></span><span class="success-text">通过：<strong id="batchCheckPass">0</strong></span><span class="danger-text">不通过：<strong id="batchCheckFail">0</strong></span></div><div><button class="default-btn" id="reuploadBatchBtn">重新上传</button><button class="primary-btn" id="executeBatchBtn">执行导入</button></div></div>
+              <div class="table-scroll"><table class="data-table wide"><thead id="batchCheckHead"></thead><tbody id="batchCheckRows"></tbody></table></div>
+            </div>
+            <div class="batch-stage" data-batch-stage="3">
+              <div class="batch-result-summary"><div><span>执行成功</span><strong class="success-text" id="batchSuccessCount">0</strong></div><div><span>执行失败</span><strong class="danger-text" id="batchFailureCount">0</strong></div><div><span>跳过</span><strong id="batchSkippedCount">0</strong></div><div class="batch-result-actions"><button class="default-btn" id="batchBackToCompanyBtn">返回客户详情</button><button class="primary-btn" id="restartBatchBtn">继续操作</button><button class="default-btn" id="viewBatchRecordsBtn">查看操作记录</button></div></div>
+              <div class="table-scroll"><table class="data-table wide"><thead id="batchExecuteHead"></thead><tbody id="batchExecuteRows"></tbody></table></div>
+            </div>
+          </section>
+        </section>
+
+        <section class="page-view" id="batchRecordsView" aria-label="批量操作记录">
+          <div class="settings-head">
+            <div><div class="breadcrumb">我的客户 / 集团商户一号 / 公司列表 / 批量操作记录</div><h1>批量操作记录</h1><div class="head-tags"><span>客户编号：160247730638</span></div></div>
+            <div class="head-actions"><button class="default-btn" id="backFromBatchRecordsBtn">返回客户详情</button></div>
+          </div>
+          <section class="panel batch-record-filter">
+            <label>任务类型<select id="batchRecordTypeFilter"><option value="">全部</option><option value="CREATE_COMPANY">批量创建公司</option><option value="ENABLE_INVOICE">批量开通发票</option><option value="ASSOCIATE_STORE">批量关联门店</option></select></label>
+            <label>状态<select id="batchRecordStatusFilter"><option value="">全部</option><option value="CheckCompleted">待执行</option><option value="ExecutionCompleted">执行完成</option><option value="ExecutionFailed">执行失败</option></select></label>
+            <label>关键字<input id="batchRecordKeyword" placeholder="文件名 / 操作人" /></label>
+            <div><button class="primary-btn" id="searchBatchRecordsBtn">查询</button><button class="default-btn" id="resetBatchRecordsBtn">重置</button></div>
+          </section>
+          <section class="panel batch-record-list" id="batchRecordListPanel">
+            <div class="table-scroll"><table class="data-table wide"><thead><tr><th>创建时间</th><th>任务类型</th><th>文件名</th><th>操作人</th><th>状态</th><th>总行数</th><th>通过/不通过</th><th>执行结果</th><th>操作</th></tr></thead><tbody id="batchRecordRows"></tbody></table></div>
+          </section>
+          <section class="panel batch-record-detail hidden" id="batchRecordDetailPanel">
+            <div class="panel-head"><div><h2 id="batchRecordDetailTitle">任务详情</h2><p id="batchRecordDetailMeta"></p></div><button class="default-btn small" id="backToBatchRecordListBtn">返回记录列表</button></div>
+            <div class="batch-detail-stats" id="batchRecordDetailStats"></div>
+            <div class="table-scroll"><table class="data-table wide"><thead id="batchRecordDetailHead"><tr><th>行号</th><th>统一社会信用代码</th><th>公司名称</th><th>检查结果</th><th>执行结果</th><th>原因/备注</th></tr></thead><tbody id="batchRecordDetailRows"></tbody></table></div>
+          </section>
+        </section>
+
+        <section class="page-view" id="einvoiceView" aria-label="客户电子发票设置">
+          <div class="settings-head">
+            <div>
+              <div class="breadcrumb">我的客户 / 集团商户一号 / 产品功能 / 电子发票设置</div>
+              <h1>集团商户一号电子发票设置</h1>
+              <div class="head-tags">
+                <span>客户编号：160247730638</span>
+              </div>
+            </div>
+            <div class="head-actions">
+              <button class="default-btn" id="backCustomerProductsBtn">返回产品管理</button>
+            </div>
+          </div>
+
+          <div class="workspace-tabs" role="tablist" aria-label="电子发票设置" data-tab-group="customerEinvoice">
+            <button class="active" data-tab="taxNoPanel">纳税人管理</button>
+            <button data-tab="brandPanel">品牌开票设置</button>
+          </div>
+
+          <section class="tab-panel active" id="taxNoPanel" data-tab-group="customerEinvoice">
+            <div class="panel">
+              <div class="table-scroll">
+                <table class="data-table wide">
+                  <thead>
+                    <tr>
+                      <th>纳税人名称</th>
+                      <th>税号</th>
+                      <th>纳税人类型</th>
+                      <th>计税方式</th>
+                      <th>征收率</th>
+                      <th>开票状态</th>
+                      <th class="action-col">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="taxNoRows"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section class="tab-panel" id="brandPanel" data-tab-group="customerEinvoice">
+            <div class="panel">
+              <div class="table-scroll">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>品牌名称</th>
+                      <th>品牌编号</th>
+                      <th>品牌描述</th>
+                      <th class="action-col">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="brandRows"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section class="page-view" id="taxNoDetailView" aria-label="纳税人详情">
+          <div class="settings-head">
+            <div>
+              <div class="breadcrumb">我的客户 / 集团商户一号 / 电子发票设置 / 纳税人详情</div>
+              <h1 id="taxNoDetailTitle">纳税人详情</h1>
+              <div class="head-tags"><span id="taxNoDetailSummary">税号：-</span></div>
+            </div>
+            <div class="head-actions tax-detail-head-actions" id="taxNoStatusActions">
+              <div class="tax-detail-status-stack">
+                <div class="tax-detail-header-field">
+                  <span class="tax-detail-header-label">开票功能状态</span>
+                  <div id="detailInvoiceStatus"></div>
+                </div>
+                <div class="tax-detail-header-field" id="taxNoStatusOperation">
+                  <span class="tax-detail-header-label">操作</span>
+                  <button class="default-btn small danger-outline" id="detailInvoiceStatusBtn">禁用</button>
+                </div>
+              </div>
+              <button class="default-btn" id="backTaxNoListBtn">返回纳税人管理</button>
+            </div>
+          </div>
+          <div class="tax-detail-stack">
+            <section class="panel tax-detail-card">
+              <div class="panel-head">
+                <div><h2>基本信息</h2><p>维护纳税人登记信息和计税属性。</p></div>
+                <div class="panel-actions view-only" data-view-for="tax-no-basic"><button class="default-btn small" id="editTaxNoBasicBtn">编辑</button></div>
+                <div class="panel-actions edit-only hidden" data-edit-for="tax-no-basic">
+                  <button class="default-btn small" id="cancelTaxNoBasicBtn">取消</button><button class="primary-btn small" id="saveTaxNoBasicBtn">保存</button>
+                </div>
+              </div>
+              <div id="taxNoBasicInfoView" class="view-only" data-view-for="tax-no-basic">
+                <div class="tax-detail-subsection"><h3>企业登记信息</h3><dl class="tax-detail-read-grid" id="taxNoRegistrationView"></dl></div>
+                <div class="tax-detail-subsection"><h3>计税信息</h3><dl class="tax-detail-read-grid compact" id="taxNoTaxInfoView"></dl></div>
+              </div>
+              <div id="taxNoBasicInfoEdit" class="edit-only hidden" data-edit-for="tax-no-basic">
+                <div class="tax-detail-subsection"><h3>企业登记信息</h3>
+                  <div class="form-grid tax-detail-form-grid">
+                    <label>纳税人名称<input id="detailTaxpayerName" readonly /></label><label>税号<input id="detailTaxNo" readonly /></label>
+                    <label>所在地区<select id="detailRegion"></select></label><label>地址<input id="detailAddress" placeholder="请输入地址" /></label>
+                    <label>联系电话<input id="detailPhone" placeholder="请输入联系电话" /></label><label>开户行名称<input id="detailBankName" placeholder="请输入开户行名称" /></label>
+                    <label>开户行账号<input id="detailBankAccount" placeholder="请输入开户行账号" /></label><label>创建时间<input id="detailCreatedAt" readonly /></label>
+                  </div>
+                </div>
+                <div class="tax-detail-subsection"><h3>计税信息</h3>
+                  <div class="form-grid tax-detail-form-grid">
+                    <label>纳税人类型<select id="detailTaxpayerType"><option>一般纳税人</option><option>小规模纳税人</option></select></label>
+                    <label>计税方式<select id="detailTaxMethod"><option>一般计税</option><option>简易计税</option></select></label>
+                    <label>征收率<select id="detailLevyRate"><option>-</option><option>1%</option><option>3%</option><option>5%</option></select></label>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section class="panel tax-detail-card" data-section="invoice-settings">
+              <div class="panel-head"><div><h2>开票设置</h2></div></div>
+              <div class="tax-detail-settings-grid">
+                <div class="tax-detail-setting-item readonly"><div><span class="detail-field-label">开票通道</span><strong id="detailInvoiceChannel">-</strong></div></div>
+              </div>
+            </section>
+            <section class="panel tax-detail-card">
+              <div class="panel-head"><div><h2>开票人信息</h2><p>税局开票人账号信息仅供查看。</p></div></div>
+              <div class="table-scroll"><table class="data-table wide"><thead><tr>
+                <th>开票人姓名</th><th>税局账号</th><th>联系邮箱</th><th>税局角色</th><th>登录模式</th><th>登录账号</th><th>创建时间</th><th>更新时间</th>
+              </tr></thead><tbody id="taxNoIssuerRows"></tbody></table></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page-view" id="brandSettingsView" aria-label="品牌开票设置">
+          <div class="settings-head">
+            <div>
+              <div class="breadcrumb">我的客户 / 集团商户一号 / 电子发票设置 / 品牌开票设置</div>
+              <h1 id="brandSettingsTitle">品牌开票设置</h1>
+              <div class="head-tags">
+                <span id="brandCodeTag">品牌编号：700001</span>
+              </div>
+            </div>
+            <div class="head-actions">
+              <button class="default-btn" id="backEinvoiceBtn">返回电子发票</button>
+            </div>
+          </div>
+
+          <div class="workspace-tabs brand-config-tabs" role="tablist" aria-label="品牌开票设置" data-tab-group="brandSettings">
+            <button class="active" data-tab="brandStorePanel">门店开票设置</button>
+            <button data-tab="brandRulePanel">订单开票规则设置</button>
+            <button data-tab="brandPaymentPanel">不可开票支付方式</button>
+            <button data-tab="brandEntryPanel">开票入口与申请页设置</button>
+          </div>
+
+          <div class="brand-tab-panels">
+              <section class="tab-panel active" id="brandStorePanel" data-tab-group="brandSettings">
+                <div class="panel">
+                <div class="query-filter single">
+                  <label class="filter-field">
+                    <input id="storeSearch" type="search" placeholder=" " />
+                    <span>门店名称 / 门店编号</span>
+                  </label>
+                </div>
+                <div class="table-toolbar">
+                  <h3 class="sub-title">门店列表</h3>
+                </div>
+                <div class="table-scroll">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>门店名称</th>
+                        <th>门店编号</th>
+                        <th>所属公司</th>
+                        <th>开票状态</th>
+                        <th>更新时间</th>
+                        <th class="action-col">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody id="storeRows"></tbody>
+                  </table>
+                </div>
+                </div>
+              </section>
+
+              <section class="tab-panel" id="brandRulePanel" data-tab-group="brandSettings">
+                <div class="panel">
+                <section class="rule-common-setting" id="itemNameSourceSetting">
+                  <div class="setting-head compact">
+                    <div>
+                      <h2>发票明细项目名称</h2>
+                      <p>设置零售订单开票时发票明细行项目名称的取值来源。</p>
+                    </div>
+                    <div class="setting-actions setting-actions-inline view-only" data-view-for="item-name-source">
+                      <span class="setting-current-value" id="itemNameSourceView">取订单商品名称</span>
+                      <button class="default-btn small" id="editItemNameSourceBtn">编辑</button>
+                    </div>
+                    <div class="setting-actions setting-actions-inline edit-only hidden" data-edit-for="item-name-source">
+                      <select id="itemNameSourceSelect" aria-label="发票明细项目名称取值来源">
+                        <option value="order-item">取订单商品名称</option>
+                        <option value="category-alias">取商品大类别名</option>
+                      </select>
+                      <button class="default-btn small" id="cancelItemNameSourceBtn">取消</button>
+                      <button class="primary-btn small" id="saveItemNameSourceBtn">保存</button>
+                    </div>
+                  </div>
+                </section>
+
+                <div class="workspace-tabs rule-sub-tabs" role="tablist" aria-label="订单开票规则设置" data-tab-group="brandRuleSettings">
+                  <button class="active" data-tab="categoryRulePanel">按商品大类匹配</button>
+                  <button data-tab="defaultRulePanel">按税号匹配</button>
+                </div>
+
+                <section class="tab-panel active rule-sub-panel" id="categoryRulePanel" data-tab-group="brandRuleSettings">
+                  <div class="sub-panel-block">
+                    <div class="section-heading">
+                      <h3 class="sub-title">按订单商品大类匹配税收分类编码</h3>
+                      <p class="section-description">按品牌维度维护订单商品行的商品大类对应的开票税收分类编码</p>
+                    </div>
+                    <div class="query-filter">
+                      <label class="filter-field">
+                        <input id="ruleCategoryKeyword" type="search" placeholder=" " />
+                        <span>商品大类</span>
+                      </label>
+                      <label class="filter-field">
+                        <input id="ruleTaxCodeKeyword" type="search" placeholder=" " />
+                        <span>税收分类编码</span>
+                      </label>
+                      <div class="query-actions">
+                        <button class="primary-btn small" id="ruleSearchBtn">查询</button>
+                        <button class="link-btn" id="ruleResetBtn">清空</button>
+                      </div>
+                    </div>
+                    <div class="table-toolbar actions-only">
+                      <div class="panel-actions">
+                        <button class="default-btn small" id="importRuleBtn">批量导入</button>
+                        <button class="primary-btn small" id="addRuleBtn">新增规则</button>
+                      </div>
+                    </div>
+                    <div class="table-scroll">
+                      <table class="data-table wide">
+                        <thead>
+                          <tr>
+                            <th>商品大类</th>
+                            <th>大类别名</th>
+                            <th>税收分类编码</th>
+                            <th>税收分类简称</th>
+                            <th>税率</th>
+                            <th>优惠政策</th>
+                            <th>更新时间</th>
+                            <th class="action-col">操作</th>
+                          </tr>
+                        </thead>
+                        <tbody id="ruleRows"></tbody>
+                      </table>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="tab-panel rule-sub-panel" id="defaultRulePanel" data-tab-group="brandRuleSettings">
+                  <div class="sub-panel-block">
+                    <div class="default-tax-code-list" id="defaultTaxCodeListWrap">
+                      <div class="section-heading">
+                        <h3 class="sub-title">按税号匹配税收分类编码</h3>
+                        <p class="section-description">当订单的商品行的商品大类匹配不到规则时，可根据订单对应门店使用的开票税号，来匹配税收分类编码和税率</p>
+                      </div>
+                      <div class="query-filter">
+                        <label class="filter-field">
+                          <input id="defaultTaxNoKeyword" type="search" placeholder=" " />
+                          <span>税号</span>
+                        </label>
+                        <label class="filter-field">
+                          <input id="defaultTaxCodeKeyword" type="search" placeholder=" " />
+                          <span>税收分类编码</span>
+                        </label>
+                        <div class="query-actions">
+                          <button class="primary-btn small" id="defaultTaxCodeSearchBtn">查询</button>
+                          <button class="link-btn" id="defaultTaxCodeResetBtn">清空</button>
+                        </div>
+                      </div>
+                      <div class="table-toolbar actions-only">
+                        <div class="panel-actions">
+                          <button class="default-btn small" id="importDefaultTaxCodeBtn">批量导入</button>
+                          <button class="primary-btn small" id="addDefaultTaxCodeBtn">新增规则</button>
+                        </div>
+                      </div>
+                      <div class="table-scroll">
+                        <table class="data-table wide">
+                          <thead>
+                            <tr>
+                              <th>税号</th>
+                              <th>纳税人名称</th>
+                              <th>大类别名</th>
+                              <th>税收分类编码</th>
+                              <th>税收分类简称</th>
+                              <th>税率</th>
+                              <th>优惠政策</th>
+                              <th>更新时间</th>
+                              <th class="action-col">操作</th>
+                            </tr>
+                          </thead>
+                          <tbody id="defaultTaxCodeRows"></tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                </div>
+              </section>
+
+              <section class="tab-panel" id="brandPaymentPanel" data-tab-group="brandSettings">
+                <div class="panel">
+                <div class="panel-head">
+                  <div>
+                    <h2>不可开票支付方式</h2>
+                    <p>命中的支付方式金额不计入零售订单可开票金额。</p>
+                  </div>
+                  <button class="primary-btn small" id="addPaymentBtn">新增支付方式</button>
+                </div>
+                <div class="table-scroll">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>支付方式编号</th>
+                        <th>支付方式名称</th>
+                        <th>更新时间</th>
+                        <th class="action-col">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody id="paymentRows"></tbody>
+                  </table>
+                </div>
+                </div>
+              </section>
+
+              <section class="tab-panel" id="brandEntryPanel" data-tab-group="brandSettings">
+                <div class="panel">
+                  <div class="entry-setting-stack">
+                    <section class="setting-block" id="qrExpireSetting">
+                      <div class="setting-head">
+                        <h2>开票二维码有效期</h2>
+                        <div class="setting-actions view-only" data-view-for="qr">
+                          <button class="default-btn small" id="editQrBtn">编辑</button>
+                        </div>
+                        <div class="setting-actions edit-only hidden" data-edit-for="qr">
+                          <button class="default-btn small" id="cancelQrBtn">取消</button>
+                          <button class="primary-btn small" id="saveQrBtn">保存</button>
+                        </div>
+                      </div>
+                      <div class="setting-body view-only" data-view-for="qr">
+                        <dl class="detail-list compact">
+                          <div>
+                            <dt>小票二维码有效期</dt>
+                            <dd><span id="qrExpireView">30</span> 天</dd>
+                          </div>
+                        </dl>
+                      </div>
+                      <div class="setting-body edit-only hidden" data-edit-for="qr">
+                        <label class="inline-setting-field">
+                          小票二维码有效期
+                          <div class="input-affix">
+                            <input id="receiptExpire" type="number" min="1" value="30" />
+                            <span>天</span>
+                          </div>
+                        </label>
+                      </div>
+                    </section>
+
+                    <section class="setting-block" id="selfReissueSetting">
+                      <div class="setting-head">
+                        <div>
+                          <h2>自助换开</h2>
+                          <p>限制消费者通过收钱吧开票申请页自助换开发票。</p>
+                        </div>
+                        <div class="setting-actions view-only" data-view-for="self-reissue">
+                          <button class="default-btn small" id="editSelfReissueBtn">编辑</button>
+                        </div>
+                        <div class="setting-actions edit-only hidden" data-edit-for="self-reissue">
+                          <button class="default-btn small" id="cancelSelfReissueBtn">取消</button>
+                          <button class="primary-btn small" id="saveSelfReissueBtn">保存</button>
+                        </div>
+                      </div>
+                      <div class="setting-body view-only" data-view-for="self-reissue" id="selfReissueView">
+                        <dl class="detail-list compact">
+                          <div><dt>自助换开</dt><dd>已开启</dd></div>
+                          <div><dt>每张发票最多换开</dt><dd>2 次</dd></div>
+                          <div><dt>可换开时间范围</dt><dd>原发票开具成功后 180 天内</dd></div>
+                        </dl>
+                      </div>
+                      <div class="setting-body edit-only hidden" data-edit-for="self-reissue">
+                        <label class="switch-setting-row">
+                          <span>
+                            <strong>允许消费者自助换开</strong>
+                            <small>关闭后，消费者不能通过收钱吧开票申请页发起换开。</small>
+                          </span>
+                          <span class="switch-control">
+                            <input id="selfReissueEnabled" type="checkbox" checked />
+                            <i aria-hidden="true"></i>
+                          </span>
+                        </label>
+                        <div class="self-reissue-fields" id="selfReissueFields">
+                          <label>
+                            <span>每张发票最多换开</span>
+                            <span><input id="selfReissueMaxCount" type="number" min="1" step="1" value="2" /> 次</span>
+                          </label>
+                          <label>
+                            <span>可换开时间范围</span>
+                            <span>原发票开具成功后 <input id="selfReissueValidDays" type="number" min="1" step="1" value="180" /> 天内</span>
+                          </label>
+                        </div>
+                        <p class="field-error hidden" id="selfReissueError" role="alert"></p>
+                      </div>
+                    </section>
+
+                    <section class="setting-block" id="applyPageSetting">
+                      <div class="setting-head">
+                        <h2>开票申请页设置</h2>
+                        <div class="setting-actions view-only" data-view-for="page">
+                          <button class="default-btn small" id="editPageBtn">编辑</button>
+                        </div>
+                        <div class="setting-actions edit-only hidden" data-edit-for="page">
+                          <button class="default-btn small" id="cancelPageBtn">取消</button>
+                          <button class="primary-btn small" id="savePageBtn">保存</button>
+                        </div>
+                      </div>
+                      <div class="entry-grid">
+                        <div class="entry-form">
+                          <div class="view-only" data-view-for="page">
+                            <dl class="detail-list">
+                              <div>
+                                <dt>页面风格</dt>
+                                <dd id="pageStyleView">经典</dd>
+                              </div>
+                              <div>
+                                <dt>主题色</dt>
+                                <dd id="themeColorView">黑金</dd>
+                              </div>
+                              <div>
+                                <dt>开票说明</dt>
+                                <dd class="note-view" id="invoiceNoteView"></dd>
+                              </div>
+                            </dl>
+                          </div>
+                          <div class="edit-only hidden" data-edit-for="page">
+                            <label>
+                              页面风格
+                              <select id="pageStyleSelect">
+                                <option>经典</option>
+                              </select>
+                            </label>
+                            <div class="theme-group" aria-label="主题色">
+                              <span class="label-text">主题色</span>
+                              <button class="theme-chip active" data-theme="black-gold"><span class="swatch black-gold"></span>黑金</button>
+                              <button class="theme-chip" data-theme="black-white"><span class="swatch black-white"></span>黑白</button>
+                              <button class="theme-chip" data-theme="red-white"><span class="swatch red-white"></span>红白</button>
+                            </div>
+                            <label class="rich-label">
+                              开票说明
+                              <div class="editor-toolbar" aria-label="富文本工具栏">
+                                <button type="button" data-command="bold">B</button>
+                                <button type="button" data-command="insertUnorderedList">列表</button>
+                                <button type="button" data-command="removeFormat">清除格式</button>
+                              </div>
+                              <div class="rich-editor" id="invoiceNote" contenteditable="true">
+                                <p>请确认订单信息后提交开票申请。专票申请提交后由商家财务审核处理。</p>
+                                <p>如订单已发生退换货，请以当前可开票金额为准。</p>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+                        <aside class="phone-preview" id="phonePreview" aria-label="开票申请页预览">
+                          <div class="phone-statusbar">
+                            <span>15:57</span>
+                            <span>••• ︶▯</span>
+                          </div>
+                          <div class="phone-nav">
+                            <span>×</span>
+                            <div>
+                              <h3>电子发票</h3>
+                              <p>uinvoice-merchant-support-universal-h5.iwosai.com</p>
+                            </div>
+                            <span>•••</span>
+                          </div>
+                          <div class="phone-content">
+                            <div class="phone-order-grid">
+                              <div>
+                                <span>订单金额:</span>
+                                <strong>¥ 15.60</strong>
+                              </div>
+                              <div>
+                                <span>可开票金额:</span>
+                                <strong>¥ 15.60</strong>
+                              </div>
+                            </div>
+                            <div class="phone-order-no">
+                              <span>订单号:</span>
+                              <strong>1735282129</strong>
+                            </div>
+                            <div class="phone-invoice-tabs">
+                              <button class="active">普票</button>
+                              <button>专票</button>
+                            </div>
+                            <div class="phone-radio-row">
+                              <span><i></i>企业</span>
+                              <span><i class="checked"></i>个人及非营利企事业单位</span>
+                            </div>
+                            <div class="phone-input-row">
+                              <span>请输入抬头（必填）</span>
+                              <strong>选择抬头</strong>
+                            </div>
+                            <div class="phone-more">填写更多⌄</div>
+                            <div class="phone-form-label">发票接收方式</div>
+                            <div class="phone-input-row full">
+                              <span>请输入您的邮箱（必填）</span>
+                            </div>
+                            <div class="phone-note" id="previewNote">
+                              请确认订单信息后提交开票申请。专票申请提交后由商家财务审核处理。
+                            </div>
+                            <button class="phone-submit">申请开票</button>
+                            <div class="phone-bottom-title">电子发票开票说明</div>
+                          </div>
+                        </aside>
+                      </div>
+                    </section>
+                  </div>
+                </div>
+              </section>
+
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="popconfirm hidden" id="statusPopover" role="dialog" aria-live="polite">
+      <p id="statusPopoverText">确认变更开票状态？</p>
+      <div class="popconfirm-actions">
+        <button class="default-btn small" id="cancelStatusPopoverBtn">取消</button>
+        <button class="primary-btn small" id="confirmStatusPopoverBtn">确定</button>
+      </div>
+    </div>
+
+    <div class="modal-mask drawer-mask" id="ruleModal" aria-hidden="true">
+      <div class="drawer drawer-wide" role="dialog" aria-modal="true" aria-labelledby="ruleModalTitle">
+        <div class="modal-head">
+          <h2 id="ruleModalTitle">新增商品开票规则</h2>
+          <button class="icon-btn" data-close="ruleModal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid drawer-form">
+            <label>
+              商品大类
+              <input id="ruleCategory" placeholder="请输入商品大类" />
+            </label>
+            <label>
+              大类别名
+              <input id="ruleAlias" placeholder="请输入大类别名" />
+            </label>
+            <label>
+              税收分类编码
+              <input id="ruleTaxCode" list="taxCodeList" placeholder="请输入税收分类编码" />
+              <datalist id="taxCodeList">
+                <option value="1040201000000000000">服装</option>
+                <option value="1040207000000000000">箱包</option>
+                <option value="3049900000000000000">其他现代服务</option>
+              </datalist>
+              <datalist id="taxNoList">
+                <option value="91310115MA1K3DEMOA">上海我有示例商贸有限公司</option>
+                <option value="91320100MA1RDEMO01">南京示例零售有限公司</option>
+              </datalist>
+            </label>
+            <label>
+              税收分类简称
+              <input id="ruleTaxName" placeholder="按税收分类编码带出" readonly />
+            </label>
+            <label>
+              税率
+              <select id="ruleRate">
+                <option>0%</option>
+                <option>1%</option>
+                <option>3%</option>
+                <option>4%</option>
+                <option>5%</option>
+                <option>6%</option>
+                <option>9%</option>
+                <option>10%</option>
+                <option>11%</option>
+                <option>13%</option>
+                <option>16%</option>
+                <option>17%</option>
+              </select>
+            </label>
+            <label>
+              优惠政策
+              <select id="rulePolicy">
+                <option>无</option>
+                <option>03 免税</option>
+                <option>04 不征税</option>
+                <option>08 按3%简易征收</option>
+                <option>09 按5%简易征收</option>
+                <option>10 按5%简易征收减按1.5%计征</option>
+              </select>
+            </label>
+          </div>
+          <p class="field-error" id="ruleError"></p>
+        </div>
+        <div class="modal-foot">
+          <button class="default-btn" data-close="ruleModal">取消</button>
+          <button class="primary-btn" id="confirmRuleBtn">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-mask" id="importModal" aria-hidden="true">
+      <div class="modal large" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+        <div class="modal-head">
+          <h2 id="importTitle">批量导入商品开票规则</h2>
+          <button class="icon-btn" data-close="importModal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="template-fields">
+            <span>品牌编号</span>
+            <span>商品大类</span>
+            <span>大类别名</span>
+            <span>税收分类编码</span>
+            <span>税率</span>
+            <span>优惠政策</span>
+          </div>
+          <label class="upload-box">
+            <input id="mockFile" type="file" />
+            <span>选择导入文件</span>
+          </label>
+          <p class="muted-text">导入后将按品牌编号和商品大类校验重复规则。</p>
+        </div>
+        <div class="modal-foot">
+          <button class="default-btn" data-close="importModal">取消</button>
+          <button class="primary-btn" id="mockImportBtn">模拟导入</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-mask drawer-mask" id="paymentModal" aria-hidden="true">
+      <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
+        <div class="modal-head">
+          <h2 id="paymentTitle">新增不可开票支付方式</h2>
+          <button class="icon-btn" data-close="paymentModal">×</button>
+        </div>
+        <div class="modal-body drawer-form">
+          <label>
+            支付方式编号
+            <input id="paymentCode" placeholder="例如：GIFT_CARD" />
+          </label>
+          <label>
+            支付方式名称
+            <input id="paymentDesc" placeholder="例如：礼品卡" />
+          </label>
+          <p class="field-error" id="paymentError"></p>
+        </div>
+        <div class="modal-foot">
+          <button class="default-btn" data-close="paymentModal">取消</button>
+          <button class="primary-btn" id="confirmPaymentBtn">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-mask drawer-mask" id="defaultTaxCodeModal" aria-hidden="true">
+      <div class="drawer drawer-wide" role="dialog" aria-modal="true" aria-labelledby="defaultTaxCodeTitle">
+        <div class="modal-head">
+          <h2 id="defaultTaxCodeTitle">编辑税号匹配规则</h2>
+          <button class="icon-btn" data-close="defaultTaxCodeModal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-grid drawer-form">
+            <label>
+              税号
+              <input id="defaultTaxNo" list="taxNoList" placeholder="请输入税号" />
+            </label>
+            <label>
+              纳税人名称
+              <input id="defaultTaxpayerName" placeholder="请输入纳税人名称" />
+            </label>
+            <label>
+              大类别名
+              <input id="defaultAlias" placeholder="请输入大类别名" />
+            </label>
+            <label>
+              税收分类编码
+              <input id="defaultTaxCode" list="taxCodeList" placeholder="请输入税收分类编码" />
+            </label>
+            <label>
+              税收分类简称
+              <input id="defaultTaxName" placeholder="请输入税收分类简称" />
+            </label>
+            <label>
+              税率
+              <select id="defaultTaxRate">
+                <option>0%</option>
+                <option>1%</option>
+                <option>3%</option>
+                <option>4%</option>
+                <option>5%</option>
+                <option>6%</option>
+                <option>9%</option>
+                <option>10%</option>
+                <option>11%</option>
+                <option>13%</option>
+                <option>16%</option>
+                <option>17%</option>
+              </select>
+            </label>
+            <label>
+              优惠政策
+              <select id="defaultPolicy">
+                <option>无</option>
+                <option>03 免税</option>
+                <option>04 不征税</option>
+                <option>08 按3%简易征收</option>
+                <option>09 按5%简易征收</option>
+                <option>10 按5%简易征收减按1.5%计征</option>
+              </select>
+            </label>
+          </div>
+          <p class="field-error" id="defaultTaxCodeError"></p>
+        </div>
+        <div class="modal-foot">
+          <button class="default-btn" data-close="defaultTaxCodeModal">取消</button>
+          <button class="primary-btn" id="confirmDefaultTaxCodeBtn">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-mask" id="defaultImportModal" aria-hidden="true">
+      <div class="modal large" role="dialog" aria-modal="true" aria-labelledby="defaultImportTitle">
+        <div class="modal-head">
+          <h2 id="defaultImportTitle">批量导入税号匹配规则</h2>
+          <button class="icon-btn" data-close="defaultImportModal">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="template-fields wide">
+            <span>税号</span>
+            <span>纳税人名称</span>
+            <span>大类别名</span>
+            <span>税收分类编码</span>
+            <span>税收分类简称</span>
+            <span>税率</span>
+            <span>优惠政策</span>
+          </div>
+          <label class="upload-box">
+            <input id="defaultMockFile" type="file" />
+            <span>选择导入文件</span>
+          </label>
+          <p class="muted-text">导入后将按税号和大类别名校验重复规则。</p>
+        </div>
+        <div class="modal-foot">
+          <button class="default-btn" data-close="defaultImportModal">取消</button>
+          <button class="primary-btn" id="mockDefaultImportBtn">导入</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-mask drawer-mask" id="createCompanyDrawer" aria-hidden="true">
+      <div class="drawer drawer-wide" role="dialog" aria-modal="true" aria-labelledby="createCompanyTitle">
+        <div class="modal-head"><h2 id="createCompanyTitle">创建公司</h2><button class="icon-btn" data-close="createCompanyDrawer">×</button></div>
+        <div class="modal-body"><div class="form-grid drawer-form company-drawer-form">
+          <label>统一社会信用代码 <em>*</em><input id="newCompanyUscc" maxlength="18" placeholder="请输入18位统一社会信用代码" /><small>输入后自动查询并回填公司名称</small></label>
+          <label>公司名称 <em>*</em><input id="newCompanyName" readonly placeholder="请先输入统一社会信用代码" /></label>
+          <fieldset><legend>是否为分公司 <em>*</em></legend><label class="radio-option"><input type="radio" name="newCompanyBranch" value="Head" checked />否</label><label class="radio-option"><input type="radio" name="newCompanyBranch" value="Branch" />是</label></fieldset>
+          <label class="hidden" id="newCompanyParentField">上级公司 <em>*</em><select id="newCompanyParent"></select></label>
+          <label>备注<textarea id="newCompanyRemark" rows="4" placeholder="请输入备注信息（选填）"></textarea></label>
+        </div><p class="field-error" id="createCompanyError"></p></div>
+        <div class="modal-foot"><button class="default-btn" data-close="createCompanyDrawer">取消</button><button class="primary-btn" id="confirmCreateCompanyBtn">创建</button></div>
+      </div>
+    </div>
+
+    <div class="modal-mask drawer-mask" id="editCompanyDrawer" aria-hidden="true">
+      <div class="drawer drawer-wide" role="dialog" aria-modal="true" aria-labelledby="editCompanyTitle">
+        <div class="modal-head"><h2 id="editCompanyTitle">编辑公司信息</h2><button class="icon-btn" data-close="editCompanyDrawer">×</button></div>
+        <div class="modal-body">
+          <div class="drawer-readonly-grid company-edit-readonly">
+            <div><span>公司名称</span><strong id="editCompanyName">-</strong></div>
+            <div><span>统一社会信用代码</span><strong id="editCompanyUscc">-</strong></div>
+            <div><span>公司ID</span><strong id="editCompanyCode">-</strong></div>
+            <div><span>创建时间</span><strong id="editCompanyCreatedAt">-</strong></div>
+          </div>
+          <div class="form-grid drawer-form company-drawer-form">
+            <fieldset><legend>公司类型 <em>*</em></legend><label class="radio-option"><input type="radio" name="editCompanyType" value="Head" />总公司</label><label class="radio-option"><input type="radio" name="editCompanyType" value="Branch" />分公司</label></fieldset>
+            <label id="editCompanyParentField">上级公司 <em>*</em><select id="editCompanyParent"></select></label>
+            <label>备注<textarea id="editCompanyRemark" rows="4" placeholder="请输入备注信息（选填）"></textarea></label>
+          </div>
+          <p class="field-error" id="editCompanyError"></p>
+        </div>
+        <div class="modal-foot"><button class="default-btn" data-close="editCompanyDrawer">取消</button><button class="primary-btn" id="saveCompanyDetailBtn">保存</button></div>
+      </div>
+    </div>
+
+    <div class="modal-mask" id="manageStoresModal" aria-hidden="true">
+      <div class="modal store-picker-modal" role="dialog" aria-modal="true" aria-labelledby="manageStoresTitle">
+        <div class="modal-head"><div><h2 id="manageStoresTitle">添加管理门店</h2><p>从当前集团客户的门店中选择，可多选。</p></div><button class="icon-btn" data-close="manageStoresModal">×</button></div>
+        <div class="modal-body">
+          <div class="store-picker-filters">
+            <label>所属品牌<select id="storePickerBrandFilter"><option value="">全部品牌</option></select></label>
+            <label>门店名<input id="storePickerNameFilter" placeholder="请输入门店名" /></label>
+            <label>门店号<input id="storePickerNoFilter" placeholder="请输入门店号" /></label>
+            <label>门店ID<input id="storePickerIdFilter" placeholder="请输入门店ID" /></label>
+            <button class="primary-btn" id="searchStorePickerBtn">查询</button>
+            <button class="default-btn" id="resetStorePickerBtn">重置</button>
+          </div>
+          <div class="store-picker-selection">
+            <strong>已选 <span id="storePickerSelectedCount">0</span> 项</strong>
+            <div class="store-picker-selection-options"><label><input type="checkbox" id="storePickerOnlyAvailable" />只看可关联门店</label><span>已关联其他公司的门店不可选择</span></div>
+          </div>
+          <div class="table-scroll store-picker-table-wrap">
+            <table class="data-table wide store-picker-table">
+              <thead><tr><th class="checkbox-col"><input type="checkbox" id="selectAllAvailableStores" aria-label="全选当前可选门店" /></th><th>门店名</th><th>门店号</th><th>门店ID</th><th>所属品牌</th><th>说明</th></tr></thead>
+              <tbody id="storePickerRows"></tbody>
+            </table>
+          </div>
+          <div class="company-pagination store-picker-pagination"><span id="storePickerTotal">共0条</span><button class="page-arrow" disabled>‹</button><button class="page-current">1</button><button class="page-arrow" disabled>›</button><select aria-label="待选门店每页条数"><option>10 条/页</option></select></div>
+        </div>
+        <div class="modal-foot"><button class="default-btn" data-close="manageStoresModal">取消</button><button class="primary-btn" id="confirmManageStoresBtn" disabled>确认选择</button></div>
+      </div>
+    </div>
+
+    <div class="modal-mask" id="removeStoreConfirmModal" aria-hidden="true">
+      <div class="modal store-remove-modal" role="alertdialog" aria-modal="true" aria-labelledby="removeStoreConfirmTitle">
+        <div class="modal-head"><h2 id="removeStoreConfirmTitle">解除门店关联</h2><button class="icon-btn" data-close="removeStoreConfirmModal">×</button></div>
+        <div class="modal-body"><p>确定将“<strong id="removeStoreName">-</strong>”从当前公司移除吗？移除后该门店可关联到其他公司。</p></div>
+        <div class="modal-foot"><button class="default-btn" data-close="removeStoreConfirmModal">取消</button><button class="danger-btn" id="confirmRemoveStoreBtn">确定移除</button></div>
+      </div>
+    </div>
+
+    <div class="modal-mask drawer-mask" id="enableInvoiceDrawer" aria-hidden="true">
+      <div class="drawer drawer-wide invoice-enable-drawer" role="dialog" aria-modal="true" aria-labelledby="enableInvoiceTitle">
+        <div class="modal-head"><h2 id="enableInvoiceTitle">开通功能</h2><button class="icon-btn" data-close="enableInvoiceDrawer">×</button></div>
+        <div class="modal-body">
+          <div class="drawer-company-summary"><div><span>公司名称</span><strong id="enableCompanyName">-</strong></div><div><span>统一社会信用代码</span><strong id="enableCompanyUscc">-</strong></div></div>
+          <div class="invoice-enable-step active" data-enable-step="1">
+            <h3 class="drawer-section-title">功能列表</h3>
+            <div class="invoice-function-option">
+              <label class="invoice-function-main"><input type="checkbox" id="invoiceFunctionSelected" checked /><span><strong>发票</strong><small id="invoiceFunctionDescription">可发起开通</small></span></label>
+              <div class="invoice-function-side"><span class="status-tag" id="enableCompanyStatus">未开通</span><button class="link-btn hidden" id="viewInvoiceSubmissionBtn" type="button">查看提交信息</button></div>
+            </div>
+          </div>
+          <form class="invoice-enable-step" data-enable-step="2" id="enableInvoiceForm">
+            <div class="invoice-failure-banner hidden" id="enablePreviousFailureBanner"><strong>上次开通失败</strong><span id="enablePreviousFailureReason">-</span></div>
+            <h3 class="drawer-section-title">税务主体信息</h3>
+            <div class="drawer-readonly-grid"><div><span>税务主体名称</span><strong id="enableTaxpayerName">-</strong></div><div><span>税号</span><strong id="enableTaxNo">-</strong></div></div>
+            <div class="form-grid drawer-form two-column invoice-tax-form">
+              <label><span class="field-label">纳税人类型 <em>*</em></span><select id="enableTaxpayerType"><option>一般纳税人</option><option>小规模纳税人</option></select></label>
+              <label><span class="field-label">计税方式 <em>*</em><span class="field-help-wrap"><button class="field-help-button" id="enableTaxMethodHelpBtn" type="button" aria-label="查看计税方式说明" aria-expanded="false" aria-controls="enableTaxMethodHelpPopover">?</button><span class="field-help-popover hidden" id="enableTaxMethodHelpPopover" role="tooltip"><strong>对后续开票的影响</strong><span><b>一般计税：</b>开票时使用商品开票规则中配置的税率。</span><span><b>简易计税：</b>不使用商品规则税率，开票时统一使用当前税号设置的征收率。</span></span></span></span><select id="enableTaxMethod"><option>一般计税</option><option>简易计税</option></select></label>
+              <label><span class="field-label">征收率 <em class="hidden" id="enableLevyRateRequired">*</em></span><select id="enableLevyRate"><option value="-">不适用</option></select></label>
+            </div>
+            <h3 class="drawer-section-title">开票人信息</h3><div class="form-grid drawer-form two-column">
+              <label><span class="field-label">开票人姓名 <em>*</em></span><input id="enableInvoicerName" autocomplete="name" /></label>
+              <label><span class="field-label">税局登录手机号 <em>*</em></span><input id="enableTaxPhone" maxlength="11" autocomplete="username" /></label>
+              <label><span class="field-label">税局密码 <em>*</em></span><input id="enableTaxPassword" type="password" autocomplete="current-password" /></label>
+              <label><span class="field-label">开票人身份 <em>*</em></span><select id="enableInvoicerRole"><option>开票员</option><option>办税员</option><option>法定代表人</option><option>财务负责人</option></select></label>
+              <label><span class="field-label">联系邮箱</span><input id="enableContactEmail" type="email" autocomplete="email" placeholder="请输入联系邮箱（选填）" /></label>
+            </div><p class="field-error" id="enableInvoiceError"></p>
+          </form>
+        </div>
+        <div class="modal-foot"><button class="default-btn hidden" id="enableInvoicePrevBtn">上一步</button><button class="default-btn" data-close="enableInvoiceDrawer">取消</button><button class="primary-btn" id="enableInvoiceNextBtn">下一步</button><button class="primary-btn hidden" id="submitEnableInvoiceBtn">提交开通申请</button></div>
+      </div>
+    </div>
+
+    <div class="modal-mask drawer-mask" id="invoiceProgressDrawer" aria-hidden="true">
+      <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="invoiceProgressTitle">
+        <div class="modal-head"><h2 id="invoiceProgressTitle">发票功能状态</h2><button class="icon-btn" data-close="invoiceProgressDrawer">×</button></div>
+        <div class="modal-body">
+          <div class="invoice-progress-status-card" id="invoiceProgressStatusCard"><strong id="progressCompanyStatus">开通中</strong><span id="progressCompanyStatusDescription">已提交开通申请，运营处理中</span></div>
+          <p class="invoice-submit-time">提交时间：<span id="progressSubmittedAt">-</span></p>
+          <h3 class="submission-title">上一次提交信息 <span>只读</span></h3>
+          <section class="submission-section"><h4>税务主体信息</h4><dl><div><dt>税务主体名称</dt><dd id="progressCompanyName">-</dd></div><div><dt>税号</dt><dd id="progressCompanyUscc">-</dd></div><div><dt>纳税人类型</dt><dd id="progressTaxpayerType">-</dd></div><div><dt>计税方式</dt><dd id="progressTaxMethod">-</dd></div><div><dt>征收率</dt><dd id="progressLevyRate">-</dd></div></dl></section>
+          <section class="submission-section"><h4>开票人信息</h4><dl><div><dt>开票人姓名</dt><dd id="progressInvoicerName">-</dd></div><div><dt>税局登录手机号</dt><dd id="progressTaxPhone">-</dd></div><div><dt>税局密码</dt><dd>••••••••</dd></div><div><dt>开票人身份</dt><dd id="progressInvoicerRole">-</dd></div><div><dt>联系邮箱</dt><dd id="progressContactEmail">-</dd></div></dl></section>
+        </div>
+        <div class="modal-foot"><button class="default-btn" data-close="invoiceProgressDrawer">关闭</button></div>
+      </div>
+    </div>
+
+    <button class="ai-float-ball" id="aiFloatBall" type="button" aria-label="打开 AI 配置助手">
+      <span>AI</span>
+    </button>
+
+    <div class="ai-chat-mask" id="aiChatMask" aria-hidden="true">
+      <section class="ai-chat-panel" role="dialog" aria-modal="true" aria-labelledby="aiChatTitle">
+        <header class="ai-chat-head">
+          <div>
+            <h2 id="aiChatTitle">AI 配置助手</h2>
+            <p id="aiScopeText">当前范围：斯沃琪集团电子发票</p>
+          </div>
+          <button class="icon-btn" id="closeAiChatBtn" type="button" aria-label="关闭 AI 配置助手">×</button>
+        </header>
+        <div class="ai-context-bar" aria-label="当前上下文">
+          <span>客户：斯沃琪集团</span>
+          <span id="aiBrandContext">品牌：全部品牌</span>
+          <span id="aiTabContext">页面：纳税人管理</span>
+        </div>
+        <div class="ai-message-list" id="aiMessages" aria-live="polite">
+          <div class="ai-message assistant">
+            <div class="ai-avatar">AI</div>
+            <div class="ai-bubble">
+              <p>我可以帮你检查纳税人、门店、订单开票规则和申请页配置，也可以根据描述直接完成配置操作。</p>
+            </div>
+          </div>
+          <div class="ai-suggestion-grid" aria-label="快捷操作">
+            <button data-ai-prompt="检查当前配置">检查当前配置</button>
+            <button data-ai-prompt="新增鞋履商品大类规则">新增商品大类规则</button>
+            <button data-ai-prompt="开启南京税号">开启南京税号</button>
+            <button data-ai-prompt="新增优惠券不可开票支付方式">新增不可开票支付方式</button>
+          </div>
+        </div>
+        <footer class="ai-composer">
+          <textarea id="aiInput" rows="2" placeholder="输入配置指令，例如：新增鞋履商品大类规则"></textarea>
+          <button class="primary-btn" id="sendAiMessageBtn" type="button">发送</button>
+        </footer>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+    <script src="./app.js"></script>
+    <script src="./company.js"></script>
+  </body>
+</html>
