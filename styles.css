@@ -765,7 +765,8 @@ button {
   background: #dfe3e8;
 }
 
-.batch-step {
+.batch-step,
+.rule-batch-step {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -773,7 +774,8 @@ button {
   white-space: nowrap;
 }
 
-.batch-step > span {
+.batch-step > span,
+.rule-batch-step > span {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -784,18 +786,24 @@ button {
   background: #fff;
 }
 
-.batch-step.active { color: #262626; }
+.batch-step.active,
+.rule-batch-step.active { color: #262626; }
 .batch-step.active > span,
-.batch-step.completed > span { border-color: #1677ff; background: #1677ff; color: #fff; }
-.batch-step.completed + i { background: #1677ff; }
+.batch-step.completed > span,
+.rule-batch-step.active > span,
+.rule-batch-step.completed > span { border-color: #1677ff; background: #1677ff; color: #fff; }
+.batch-step.completed + i,
+.rule-batch-step.completed + i { background: #1677ff; }
 
 .batch-workspace {
   min-height: 520px;
   padding: 32px;
 }
 
-.batch-stage { display: none; }
-.batch-stage.active { display: block; }
+.batch-stage,
+.rule-batch-stage { display: none; }
+.batch-stage.active,
+.rule-batch-stage.active { display: block; }
 
 .batch-upload-section {
   max-width: 640px;

@@ -19,6 +19,10 @@ const state = {
   editingPaymentIndex: null,
   editingDefaultTaxCodeIndex: null,
   currentTaxNoId: null,
+  ruleBatchMode: "category",
+  ruleBatchStep: 1,
+  ruleBatchFileName: "",
+  ruleBatchRows: [],
 };
 
 const themeNames = {
@@ -400,6 +404,181 @@ function renderDefaultTaxCodes() {
       `;
     })
     .join("");
+}
+
+function getRuleBatchMeta(mode = state.ruleBatchMode) {
+  const map = {
+    category: {
+      title: "批量导入商品大类匹配规则",
+      hint: "请下载商品大类匹配规则模板，按模板填写规则信息。",
+      fileName: "商品大类匹配规则导入模板.xlsx",
+      sampleFileName: "商品大类匹配规则导入示例.xlsx",
+      fields: ["品牌编号", "商品大类", "大类别名", "税收分类编码", "税率", "优惠政策"],
+      returnPanel: "categoryRulePanel",
+    },
+    taxNo: {
+      title: "批量导入税号匹配规则",
+      hint: "请下载税号匹配规则模板，按模板填写税号和税收分类信息。",
+      fileName: "税号匹配规则导入模板.xlsx",
+      sampleFileName: "税号匹配规则导入示例.xlsx",
+      fields: ["税号", "纳税人名称", "大类别名", "税收分类编码", "税收分类简称", "税率", "优惠政策"],
+      returnPanel: "defaultRulePanel",
+    },
+  };
+  return map[mode] || map.category;
+}
+
+function setRuleBatchStage(step) {
+  state.ruleBatchStep = step;
+  document.querySelectorAll(".rule-batch-stage").forEach((item) => item.classList.toggle("active", Number(item.dataset.ruleBatchStage) === step));
+  document.querySelectorAll(".rule-batch-step").forEach((item) => {
+    const itemStep = Number(item.dataset.ruleBatchStep);
+    item.classList.toggle("active", itemStep === step);
+    item.classList.toggle("completed", itemStep < step);
+  });
+}
+
+function openRuleBatch(mode) {
+  state.ruleBatchMode = mode;
+  state.ruleBatchFileName = "";
+  state.ruleBatchRows = [];
+  const meta = getRuleBatchMeta(mode);
+  const brand = brands.find((item) => item.code === state.currentBrandCode) || brands[0];
+  document.getElementById("ruleBatchBreadcrumb").textContent = meta.title;
+  document.getElementById("ruleBatchPageTitle").textContent = meta.title;
+  document.getElementById("ruleBatchBrandTag").textContent = `品牌：${brand.name}（${brand.code}）`;
+  document.getElementById("ruleBatchTemplateHint").textContent = meta.hint;
+  document.getElementById("ruleBatchTemplateFields").innerHTML = meta.fields.map((field) => `<span>${escapeHtml(field)}</span>`).join("");
+  document.getElementById("ruleBatchFileCard").classList.add("hidden");
+  document.getElementById("startRuleBatchCheckBtn").disabled = true;
+  setRuleBatchStage(1);
+  setView("ruleBatchView");
+}
+
+function getMockRuleBatchRows(mode = state.ruleBatchMode) {
+  if (mode === "taxNo") {
+    return [
+      { row: 1, taxNo: "91310115MA1K3DEMOA", taxpayerName: "上海我有示例商贸有限公司", alias: "鞋履商品", taxCode: "1040201000000000000", taxName: "服装", rate: "13%", policy: "无" },
+      { row: 2, taxNo: "91320100MA1RDEMO01", taxpayerName: "南京示例零售有限公司", alias: "售后服务", taxCode: "3049900000000000000", taxName: "其他现代服务", rate: "3%", policy: "无" },
+      { row: 3, taxNo: "91310115MA1UNKNOWN", taxpayerName: "未知纳税人", alias: "零售商品", taxCode: "1040201000000000000", taxName: "服装", rate: "13%", policy: "无" },
+      { row: 4, taxNo: "91310115MA1K3DEMOA", taxpayerName: "上海我有示例商贸有限公司", alias: "零售商品", taxCode: "1040207000000000000", taxName: "箱包", rate: "13%", policy: "无" },
+    ].map(validateTaxNoBatchRow);
+  }
+  return [
+    { row: 1, brandCode: state.currentBrandCode, category: "鞋履", alias: "鞋靴", taxCode: "1040201000000000000", rate: "13%", policy: "无" },
+    { row: 2, brandCode: state.currentBrandCode, category: "数码配件", alias: "配件商品", taxCode: "1040207000000000000", rate: "13%", policy: "无" },
+    { row: 3, brandCode: "700099", category: "家居用品", alias: "家居", taxCode: "1040207000000000000", rate: "13%", policy: "无" },
+    { row: 4, brandCode: state.currentBrandCode, category: "服饰", alias: "服装", taxCode: "1040201000000000000", rate: "13%", policy: "无" },
+  ].map(validateCategoryBatchRow);
+}
+
+function validateCategoryBatchRow(item) {
+  let check = "通过";
+  let reason = "-";
+  if (!item.brandCode || !item.category || !item.alias || !item.taxCode || !item.rate || !item.policy) {
+    check = "不通过";
+    reason = "存在必填字段为空";
+  } else if (item.brandCode !== state.currentBrandCode) {
+    check = "不通过";
+    reason = "品牌编号与当前品牌不一致";
+  } else if (!taxCodeNames[item.taxCode]) {
+    check = "不通过";
+    reason = "税收分类编码不存在";
+  } else if (rules.some((rule) => rule.brandCode === state.currentBrandCode && rule.category === item.category)) {
+    check = "不通过";
+    reason = "当前品牌已存在相同商品大类规则";
+  }
+  return { ...item, taxName: taxCodeNames[item.taxCode] || "-", check, reason };
+}
+
+function validateTaxNoBatchRow(item) {
+  let check = "通过";
+  let reason = "-";
+  const taxpayer = taxNos.find((entry) => entry.taxNo === item.taxNo);
+  if (!item.taxNo || !item.taxpayerName || !item.alias || !item.taxCode || !item.taxName || !item.rate || !item.policy) {
+    check = "不通过";
+    reason = "存在必填字段为空";
+  } else if (!taxpayer) {
+    check = "不通过";
+    reason = "当前集团客户下未找到该税号";
+  } else if (taxpayer.name !== item.taxpayerName) {
+    check = "不通过";
+    reason = "纳税人名称与税号不一致";
+  } else if (!taxCodeNames[item.taxCode] || taxCodeNames[item.taxCode] !== item.taxName) {
+    check = "不通过";
+    reason = "税收分类编码与简称不一致";
+  } else if (defaultTaxCodes.some((rule) => rule.brandCode === state.currentBrandCode && rule.taxNo === item.taxNo && rule.alias === item.alias)) {
+    check = "不通过";
+    reason = "当前品牌已存在相同税号和大类别名规则";
+  }
+  return { ...item, check, reason };
+}
+
+function selectMockRuleBatchFile() {
+  const meta = getRuleBatchMeta();
+  state.ruleBatchFileName = meta.sampleFileName;
+  state.ruleBatchRows = getMockRuleBatchRows();
+  document.getElementById("ruleBatchFileName").textContent = state.ruleBatchFileName;
+  document.getElementById("ruleBatchFileCard").classList.remove("hidden");
+  document.getElementById("startRuleBatchCheckBtn").disabled = false;
+}
+
+function renderRuleBatchCheck() {
+  const rows = state.ruleBatchRows;
+  const isTaxNo = state.ruleBatchMode === "taxNo";
+  document.getElementById("ruleBatchCheckTotal").textContent = rows.length;
+  document.getElementById("ruleBatchCheckPass").textContent = rows.filter((item) => item.check === "通过").length;
+  document.getElementById("ruleBatchCheckFail").textContent = rows.filter((item) => item.check !== "通过").length;
+  document.getElementById("ruleBatchCheckHead").innerHTML = isTaxNo
+    ? "<tr><th>行号</th><th>税号</th><th>纳税人名称</th><th>大类别名</th><th>税收分类编码</th><th>税收分类简称</th><th>税率</th><th>优惠政策</th><th>检查结果</th><th>原因</th></tr>"
+    : "<tr><th>行号</th><th>品牌编号</th><th>商品大类</th><th>大类别名</th><th>税收分类编码</th><th>税率</th><th>优惠政策</th><th>检查结果</th><th>原因</th></tr>";
+  document.getElementById("ruleBatchCheckRows").innerHTML = rows.map((item) => {
+    const result = `<span class="result-badge ${item.check === "通过" ? "result-success" : "result-fail"}">${item.check}</span>`;
+    if (isTaxNo) return `<tr><td>${item.row}</td><td>${escapeHtml(item.taxNo)}</td><td>${escapeHtml(item.taxpayerName)}</td><td>${escapeHtml(item.alias)}</td><td>${escapeHtml(item.taxCode)}</td><td>${escapeHtml(item.taxName)}</td><td>${escapeHtml(item.rate)}</td><td>${escapeHtml(item.policy)}</td><td>${result}</td><td>${escapeHtml(item.reason)}</td></tr>`;
+    return `<tr><td>${item.row}</td><td>${escapeHtml(item.brandCode)}</td><td>${escapeHtml(item.category)}</td><td>${escapeHtml(item.alias)}</td><td>${escapeHtml(item.taxCode)}</td><td>${escapeHtml(item.rate)}</td><td>${escapeHtml(item.policy)}</td><td>${result}</td><td>${escapeHtml(item.reason)}</td></tr>`;
+  }).join("");
+}
+
+function executeRuleBatch() {
+  const passedRows = state.ruleBatchRows.filter((item) => item.check === "通过");
+  state.ruleBatchRows.forEach((item) => {
+    item.execute = item.check === "通过" ? "成功" : "跳过";
+    item.executeReason = item.check === "通过" ? "-" : item.reason;
+  });
+  if (state.ruleBatchMode === "taxNo") {
+    passedRows.forEach((item) => defaultTaxCodes.unshift({ brandCode: state.currentBrandCode, taxNo: item.taxNo, taxpayerName: item.taxpayerName, alias: item.alias, taxCode: item.taxCode, taxName: item.taxName, rate: item.rate, policy: item.policy, updated: "2026-07-21 10:30" }));
+    renderDefaultTaxCodes();
+  } else {
+    passedRows.forEach((item) => rules.unshift({ brandCode: state.currentBrandCode, category: item.category, alias: item.alias, taxCode: item.taxCode, taxName: item.taxName, rate: item.rate, policy: item.policy, updated: "2026-07-21 10:30" }));
+    renderRules();
+  }
+  renderRuleBatchExecute();
+  setRuleBatchStage(3);
+}
+
+function renderRuleBatchExecute() {
+  const isTaxNo = state.ruleBatchMode === "taxNo";
+  const rows = state.ruleBatchRows;
+  document.getElementById("ruleBatchSuccessCount").textContent = rows.filter((item) => item.execute === "成功").length;
+  document.getElementById("ruleBatchFailureCount").textContent = "0";
+  document.getElementById("ruleBatchSkippedCount").textContent = rows.filter((item) => item.execute === "跳过").length;
+  document.getElementById("ruleBatchExecuteHead").innerHTML = isTaxNo
+    ? "<tr><th>行号</th><th>税号</th><th>纳税人名称</th><th>大类别名</th><th>税收分类编码</th><th>税率</th><th>执行结果</th><th>原因/备注</th></tr>"
+    : "<tr><th>行号</th><th>品牌编号</th><th>商品大类</th><th>大类别名</th><th>税收分类编码</th><th>税率</th><th>执行结果</th><th>原因/备注</th></tr>";
+  document.getElementById("ruleBatchExecuteRows").innerHTML = rows.map((item) => {
+    const result = `<span class="result-badge ${item.execute === "成功" ? "result-success" : "status-unopened"}">${item.execute}</span>`;
+    if (isTaxNo) return `<tr><td>${item.row}</td><td>${escapeHtml(item.taxNo)}</td><td>${escapeHtml(item.taxpayerName)}</td><td>${escapeHtml(item.alias)}</td><td>${escapeHtml(item.taxCode)}</td><td>${escapeHtml(item.rate)}</td><td>${result}</td><td>${escapeHtml(item.executeReason)}</td></tr>`;
+    return `<tr><td>${item.row}</td><td>${escapeHtml(item.brandCode)}</td><td>${escapeHtml(item.category)}</td><td>${escapeHtml(item.alias)}</td><td>${escapeHtml(item.taxCode)}</td><td>${escapeHtml(item.rate)}</td><td>${result}</td><td>${escapeHtml(item.executeReason)}</td></tr>`;
+  }).join("");
+}
+
+function backToRuleSettings() {
+  const meta = getRuleBatchMeta();
+  openBrandSettings(state.currentBrandCode);
+  const topTab = document.querySelector('.workspace-tabs[data-tab-group="brandSettings"] button[data-tab="brandRulePanel"]');
+  const subTab = document.querySelector(`.workspace-tabs[data-tab-group="brandRuleSettings"] button[data-tab="${meta.returnPanel}"]`);
+  if (topTab) activateTab(topTab);
+  if (subTab) activateTab(subTab);
 }
 
 function renderPayments() {
@@ -1278,27 +1457,12 @@ function bindEvents() {
     state.ruleTaxCodeKeyword = "";
     renderRules();
   });
-  document.getElementById("importRuleBtn").addEventListener("click", () => openModal("importModal"));
-  document.getElementById("mockImportBtn").addEventListener("click", () => {
-    rules.unshift({
-      brandCode: state.currentBrandCode,
-      category: "鞋履",
-      alias: "鞋靴",
-      taxCode: "1040201000000000000",
-      taxName: "服装",
-      rate: "13%",
-      policy: "无",
-      updated: "2026-07-07 10:30",
-    });
-    closeModal("importModal");
-    renderRules();
-    showToast("已导入 1 条商品开票规则");
-  });
+  document.getElementById("importRuleBtn").addEventListener("click", () => openRuleBatch("category"));
 
   document.getElementById("addPaymentBtn").addEventListener("click", () => openPaymentModal());
   document.getElementById("confirmPaymentBtn").addEventListener("click", confirmPayment);
   document.getElementById("addDefaultTaxCodeBtn").addEventListener("click", () => openDefaultTaxCodeModal());
-  document.getElementById("importDefaultTaxCodeBtn").addEventListener("click", () => openModal("defaultImportModal"));
+  document.getElementById("importDefaultTaxCodeBtn").addEventListener("click", () => openRuleBatch("taxNo"));
   document.getElementById("confirmDefaultTaxCodeBtn").addEventListener("click", confirmDefaultTaxCode);
   document.getElementById("defaultTaxCodeSearchBtn").addEventListener("click", () => {
     state.defaultTaxNoKeyword = document.getElementById("defaultTaxNoKeyword").value.trim();
@@ -1327,22 +1491,23 @@ function bindEvents() {
     const taxName = taxCodeNames[event.target.value.trim()];
     if (taxName) document.getElementById("defaultTaxName").value = taxName;
   });
-  document.getElementById("mockDefaultImportBtn").addEventListener("click", () => {
-    defaultTaxCodes.unshift({
-      brandCode: state.currentBrandCode,
-      taxNo: "91310115MA1K3DEMOA",
-      taxpayerName: "上海我有示例商贸有限公司",
-      alias: "配件商品",
-      taxCode: "1040207000000000000",
-      taxName: "箱包",
-      rate: "13%",
-      policy: "无",
-      updated: "2026-07-07 10:30",
-    });
-    closeModal("defaultImportModal");
-    renderDefaultTaxCodes();
-    showToast("已导入 1 条税号匹配规则");
+  document.getElementById("backRuleSettingsBtn").addEventListener("click", backToRuleSettings);
+  document.getElementById("ruleBatchBackToRulesBtn").addEventListener("click", backToRuleSettings);
+  document.getElementById("downloadRuleBatchTemplateBtn").addEventListener("click", () => showToast(`已下载${getRuleBatchMeta().fileName}`));
+  document.getElementById("selectRuleBatchFileBtn").addEventListener("click", selectMockRuleBatchFile);
+  document.getElementById("removeRuleBatchFileBtn").addEventListener("click", () => {
+    state.ruleBatchFileName = "";
+    state.ruleBatchRows = [];
+    document.getElementById("ruleBatchFileCard").classList.add("hidden");
+    document.getElementById("startRuleBatchCheckBtn").disabled = true;
   });
+  document.getElementById("startRuleBatchCheckBtn").addEventListener("click", () => {
+    renderRuleBatchCheck();
+    setRuleBatchStage(2);
+  });
+  document.getElementById("reuploadRuleBatchBtn").addEventListener("click", () => openRuleBatch(state.ruleBatchMode));
+  document.getElementById("executeRuleBatchBtn").addEventListener("click", executeRuleBatch);
+  document.getElementById("restartRuleBatchBtn").addEventListener("click", () => openRuleBatch(state.ruleBatchMode));
   document.getElementById("editItemNameSourceBtn").addEventListener("click", editItemNameSource);
   document.getElementById("saveItemNameSourceBtn").addEventListener("click", saveItemNameSource);
   document.getElementById("cancelItemNameSourceBtn").addEventListener("click", cancelItemNameSource);

@@ -212,6 +212,49 @@
           </section>
         </section>
 
+        <section class="page-view" id="ruleBatchView" aria-label="开票规则批量导入">
+          <div class="settings-head">
+            <div>
+              <div class="breadcrumb">我的客户 / 集团商户一号 / 电子发票设置 / 品牌开票设置 / <span id="ruleBatchBreadcrumb">批量导入商品大类匹配规则</span></div>
+              <h1 id="ruleBatchPageTitle">批量导入商品大类匹配规则</h1>
+              <div class="head-tags"><span id="ruleBatchBrandTag">品牌编号：700001</span></div>
+            </div>
+            <div class="head-actions"><button class="default-btn" id="backRuleSettingsBtn">返回开票规则设置</button></div>
+          </div>
+          <div class="batch-stepper" id="ruleBatchStepper">
+            <div class="rule-batch-step active" data-rule-batch-step="1"><span>1</span><strong>上传文件</strong></div>
+            <i></i>
+            <div class="rule-batch-step" data-rule-batch-step="2"><span>2</span><strong>检查文件</strong></div>
+            <i></i>
+            <div class="rule-batch-step" data-rule-batch-step="3"><span>3</span><strong>执行导入</strong></div>
+          </div>
+          <section class="panel batch-workspace">
+            <div class="rule-batch-stage active" data-rule-batch-stage="1">
+              <div class="batch-upload-section">
+                <h2>1. 下载模板</h2>
+                <p id="ruleBatchTemplateHint">请下载商品大类匹配规则模板，按模板填写规则信息。</p>
+                <div class="batch-template-fields" id="ruleBatchTemplateFields" aria-label="模板字段"></div>
+                <button class="default-btn" id="downloadRuleBatchTemplateBtn">下载模板</button>
+              </div>
+              <div class="batch-upload-section divider-top">
+                <h2>2. 上传文件</h2>
+                <p>支持 xlsx 格式，文件大小不超过 5MB</p>
+                <button class="batch-upload-box" id="selectRuleBatchFileBtn" type="button"><span class="upload-icon">⇧</span><strong>点击选择示例文件</strong><small>也可拖拽文件到此区域上传</small></button>
+                <div class="batch-file-card hidden" id="ruleBatchFileCard"><div><strong id="ruleBatchFileName">-</strong><small>文件已上传，可开始检查</small></div><button class="link-btn danger" id="removeRuleBatchFileBtn">移除</button></div>
+                <button class="primary-btn batch-primary-action" id="startRuleBatchCheckBtn" disabled>开始检查</button>
+              </div>
+            </div>
+            <div class="rule-batch-stage" data-rule-batch-stage="2">
+              <div class="batch-result-head"><div class="batch-stats"><span>总行数：<strong id="ruleBatchCheckTotal">0</strong></span><span class="success-text">通过：<strong id="ruleBatchCheckPass">0</strong></span><span class="danger-text">不通过：<strong id="ruleBatchCheckFail">0</strong></span></div><div><button class="default-btn" id="reuploadRuleBatchBtn">重新上传</button><button class="primary-btn" id="executeRuleBatchBtn">执行导入</button></div></div>
+              <div class="table-scroll"><table class="data-table wide"><thead id="ruleBatchCheckHead"></thead><tbody id="ruleBatchCheckRows"></tbody></table></div>
+            </div>
+            <div class="rule-batch-stage" data-rule-batch-stage="3">
+              <div class="batch-result-summary"><div><span>执行成功</span><strong class="success-text" id="ruleBatchSuccessCount">0</strong></div><div><span>执行失败</span><strong class="danger-text" id="ruleBatchFailureCount">0</strong></div><div><span>跳过</span><strong id="ruleBatchSkippedCount">0</strong></div><div class="batch-result-actions"><button class="default-btn" id="ruleBatchBackToRulesBtn">返回开票规则设置</button><button class="primary-btn" id="restartRuleBatchBtn">继续导入</button></div></div>
+              <div class="table-scroll"><table class="data-table wide"><thead id="ruleBatchExecuteHead"></thead><tbody id="ruleBatchExecuteRows"></tbody></table></div>
+            </div>
+          </section>
+        </section>
+
         <section class="page-view" id="batchRecordsView" aria-label="批量操作记录">
           <div class="settings-head">
             <div><div class="breadcrumb">我的客户 / 集团商户一号 / 公司列表 / 批量操作记录</div><h1>批量操作记录</h1><div class="head-tags"><span>客户编号：160247730638</span></div></div>
@@ -837,34 +880,6 @@
       </div>
     </div>
 
-    <div class="modal-mask" id="importModal" aria-hidden="true">
-      <div class="modal large" role="dialog" aria-modal="true" aria-labelledby="importTitle">
-        <div class="modal-head">
-          <h2 id="importTitle">批量导入商品开票规则</h2>
-          <button class="icon-btn" data-close="importModal">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="template-fields">
-            <span>品牌编号</span>
-            <span>商品大类</span>
-            <span>大类别名</span>
-            <span>税收分类编码</span>
-            <span>税率</span>
-            <span>优惠政策</span>
-          </div>
-          <label class="upload-box">
-            <input id="mockFile" type="file" />
-            <span>选择导入文件</span>
-          </label>
-          <p class="muted-text">导入后将按品牌编号和商品大类校验重复规则。</p>
-        </div>
-        <div class="modal-foot">
-          <button class="default-btn" data-close="importModal">取消</button>
-          <button class="primary-btn" id="mockImportBtn">模拟导入</button>
-        </div>
-      </div>
-    </div>
-
     <div class="modal-mask drawer-mask" id="paymentModal" aria-hidden="true">
       <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
         <div class="modal-head">
@@ -951,35 +966,6 @@
         <div class="modal-foot">
           <button class="default-btn" data-close="defaultTaxCodeModal">取消</button>
           <button class="primary-btn" id="confirmDefaultTaxCodeBtn">确定</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal-mask" id="defaultImportModal" aria-hidden="true">
-      <div class="modal large" role="dialog" aria-modal="true" aria-labelledby="defaultImportTitle">
-        <div class="modal-head">
-          <h2 id="defaultImportTitle">批量导入税号匹配规则</h2>
-          <button class="icon-btn" data-close="defaultImportModal">×</button>
-        </div>
-        <div class="modal-body">
-          <div class="template-fields wide">
-            <span>税号</span>
-            <span>纳税人名称</span>
-            <span>大类别名</span>
-            <span>税收分类编码</span>
-            <span>税收分类简称</span>
-            <span>税率</span>
-            <span>优惠政策</span>
-          </div>
-          <label class="upload-box">
-            <input id="defaultMockFile" type="file" />
-            <span>选择导入文件</span>
-          </label>
-          <p class="muted-text">导入后将按税号和大类别名校验重复规则。</p>
-        </div>
-        <div class="modal-foot">
-          <button class="default-btn" data-close="defaultImportModal">取消</button>
-          <button class="primary-btn" id="mockDefaultImportBtn">导入</button>
         </div>
       </div>
     </div>
