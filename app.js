@@ -15,6 +15,12 @@ const state = {
   currentBrandCode: "700001",
   selfReissueByBrand: {},
   selfReissueDraft: null,
+  brandLogoByBrand: {},
+  brandLogoDraft: null,
+  customerBrandViewMode: "list",
+  customerBrandPage: 1,
+  customerBrandPageSize: 6,
+  currentBrandDetailCode: null,
   editingRuleIndex: null,
   editingPaymentIndex: null,
   editingDefaultTaxCodeIndex: null,
@@ -115,16 +121,81 @@ const brands = [
     name: "WOSAI Demo Shop",
     code: "700001",
     desc: "集团零售订单开票示例品牌",
+    industry: "餐饮服务",
+    groupName: "集团商户一号",
+    createdAt: "2020-05-12 22:24",
+    logoUrl: createBrandLogo("W", "#3156c9"),
+    logoHorizontalUrl: createBrandLogo("WOSAI Demo Shop", "#3156c9", true),
   },
   {
     name: "Swatch",
     code: "700002",
     desc: "腕表零售品牌",
+    industry: "钟表零售",
+    groupName: "集团商户一号",
+    createdAt: "2020-06-18 11:35",
+    logoUrl: createBrandLogo("S", "#d9363e"),
+    logoHorizontalUrl: createBrandLogo("SWATCH", "#d9363e", true),
   },
   {
     name: "Omega",
     code: "700003",
     desc: "高端腕表零售品牌",
+    industry: "钟表零售",
+    groupName: "集团商户一号",
+    createdAt: "2020-07-03 09:40",
+    logoUrl: createBrandLogo("Ω", "#8c6f3d"),
+    logoHorizontalUrl: createBrandLogo("OMEGA", "#8c6f3d", true),
+  },
+  {
+    name: "Ralph Lauren",
+    code: "700004",
+    desc: "国际时装与生活方式品牌",
+    industry: "服饰零售",
+    groupName: "集团商户一号",
+    createdAt: "2020-08-16 14:20",
+    logoUrl: createBrandLogo("RL", "#24364b"),
+    logoHorizontalUrl: createBrandLogo("RALPH LAUREN", "#24364b", true),
+  },
+  {
+    name: "Ubras",
+    code: "700005",
+    desc: "舒适贴身服饰品牌",
+    industry: "服饰零售",
+    groupName: "集团商户一号",
+    createdAt: "2020-09-22 16:08",
+    logoUrl: createBrandLogo("U", "#bf5b76"),
+    logoHorizontalUrl: createBrandLogo("UBRAS", "#bf5b76", true),
+  },
+  {
+    name: "林清轩",
+    code: "700006",
+    desc: "山茶花护肤品牌",
+    industry: "美妆零售",
+    groupName: "集团商户一号",
+    createdAt: "2020-10-11 10:16",
+    logoUrl: createBrandLogo("林", "#8f3d2c"),
+    logoHorizontalUrl: createBrandLogo("林清轩", "#8f3d2c", true),
+  },
+  {
+    name: "MAIA ACTIVE",
+    code: "700007",
+    desc: "女性运动服饰品牌",
+    industry: "运动服饰",
+    groupName: "集团商户一号",
+    createdAt: "2020-11-05 18:30",
+    logoUrl: createBrandLogo("M", "#7766a7"),
+    logoHorizontalUrl: createBrandLogo("MAIA ACTIVE", "#7766a7", true),
+  },
+  {
+    name: "Hazzys",
+    code: "700008",
+    desc: "英伦风格服饰品牌",
+    industry: "服饰零售",
+    groupName: "集团商户一号",
+    createdAt: "2020-12-19 12:05",
+    logoUrl: "",
+    logoHorizontalUrl: "",
   },
 ];
 
@@ -133,7 +204,8 @@ const stores = [
     id: "store-1",
     name: "上海静安旗舰店",
     code: "ST700001001",
-    company: "上海我有示例商贸有限公司",
+    taxNo: "91310115MA1K3DEMOA",
+    taxpayerName: "上海我有示例商贸有限公司",
     enabled: true,
     reason: "-",
     updated: "2026-07-06 15:20",
@@ -142,7 +214,8 @@ const stores = [
     id: "store-2",
     name: "南京新街口店",
     code: "ST700001021",
-    company: "南京示例零售有限公司",
+    taxNo: "91320100MA1RDEMO01",
+    taxpayerName: "南京示例零售有限公司",
     enabled: false,
     reason: "门店仍在做公司税号关联核对",
     updated: "2026-07-06 14:12",
@@ -151,7 +224,8 @@ const stores = [
     id: "store-3",
     name: "杭州湖滨店",
     code: "ST700001033",
-    company: "上海我有示例商贸有限公司",
+    taxNo: "91310115MA1K3DEMOA",
+    taxpayerName: "上海我有示例商贸有限公司",
     enabled: true,
     reason: "-",
     updated: "2026-07-05 18:36",
@@ -167,6 +241,7 @@ const rules = [
     taxName: "服装",
     rate: "13%",
     policy: "无",
+    specifiedTaxNo: "91310115MA1K3DEMOA",
     updated: "2026-07-06 15:02",
   },
   {
@@ -177,6 +252,7 @@ const rules = [
     taxName: "箱包",
     rate: "13%",
     policy: "无",
+    specifiedTaxNo: "",
     updated: "2026-07-06 15:02",
   },
   {
@@ -187,6 +263,7 @@ const rules = [
     taxName: "其他现代服务",
     rate: "6%",
     policy: "无",
+    specifiedTaxNo: "91320100MA1RDEMO01",
     updated: "2026-07-05 19:40",
   },
 ];
@@ -239,10 +316,52 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
+function createBrandLogo(label, background, wide = false) {
+  const width = wide ? 320 : 160;
+  const height = 160;
+  const fontSize = wide ? 34 : 54;
+  const safeLabel = String(label).replace(/[<>&"']/g, "");
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="100%" height="100%" rx="12" fill="${background}"/><text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="${fontSize}" font-weight="700">${safeLabel}</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+const detailDrawerViewIds = new Set(["companyDetailView", "brandDetailView", "brandStoreDetailView", "taxNoDetailView"]);
+
+function syncDetailDrawerLayer() {
+  const activeDrawer = document.querySelector(".detail-drawer-view.active");
+  const backdrop = document.getElementById("detailDrawerBackdrop");
+  document.body.classList.toggle("detail-drawer-open", Boolean(activeDrawer));
+  if (backdrop) {
+    backdrop.classList.toggle("active", Boolean(activeDrawer));
+    backdrop.setAttribute("aria-hidden", String(!activeDrawer));
+  }
+  document.querySelectorAll(".detail-drawer-view").forEach((drawer) => {
+    drawer.setAttribute("aria-hidden", String(drawer !== activeDrawer));
+  });
+}
+
 function setView(view) {
-  document.querySelectorAll(".page-view").forEach((item) => item.classList.remove("active"));
-  document.getElementById(view).classList.add("active");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  const target = document.getElementById(view);
+  if (!target) return;
+  if (detailDrawerViewIds.has(view)) {
+    document.querySelectorAll(".detail-drawer-view").forEach((item) => item.classList.remove("active"));
+    document.querySelectorAll(".page-view:not(.detail-drawer-view)").forEach((item) => item.classList.remove("active"));
+    document.getElementById(target.dataset.drawerBase || "productsView")?.classList.add("active");
+    target.classList.add("active");
+    target.scrollTop = 0;
+    requestAnimationFrame(() => target.focus({ preventScroll: true }));
+  } else {
+    document.querySelectorAll(".page-view").forEach((item) => item.classList.remove("active"));
+    target.classList.add("active");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  syncDetailDrawerLayer();
+}
+
+function closeActiveDetailDrawer() {
+  const activeDrawer = document.querySelector(".detail-drawer-view.active");
+  if (!activeDrawer) return;
+  setView(activeDrawer.dataset.drawerBase || "productsView");
 }
 
 function syncTabSemantics() {
@@ -324,6 +443,79 @@ function renderBrands() {
     .join("");
 }
 
+function renderBrandLogo(url, alt, variant = "") {
+  if (!url) return `<div class="brand-logo-placeholder ${variant}"><span>暂无 Logo</span></div>`;
+  return `<img src="${url}" alt="${escapeHtml(alt)}" />`;
+}
+
+function renderCustomerBrands() {
+  const total = brands.length;
+  const totalPages = Math.max(1, Math.ceil(total / state.customerBrandPageSize));
+  state.customerBrandPage = Math.min(state.customerBrandPage, totalPages);
+  const start = (state.customerBrandPage - 1) * state.customerBrandPageSize;
+  const pageItems = brands.slice(start, start + state.customerBrandPageSize);
+  const isList = state.customerBrandViewMode === "list";
+
+  document.getElementById("brandListViewBtn").classList.toggle("active", isList);
+  document.getElementById("brandCardViewBtn").classList.toggle("active", !isList);
+  document.getElementById("brandListViewBtn").setAttribute("aria-pressed", String(isList));
+  document.getElementById("brandCardViewBtn").setAttribute("aria-pressed", String(!isList));
+  document.getElementById("customerBrandListView").classList.toggle("hidden", !isList || total === 0);
+  document.getElementById("customerBrandCardView").classList.toggle("hidden", isList || total === 0);
+  document.getElementById("customerBrandEmpty").classList.toggle("hidden", total !== 0);
+  document.querySelector(".customer-brand-pagination").classList.toggle("hidden", total === 0);
+
+  document.getElementById("customerBrandRows").innerHTML = pageItems.map((item) => `
+    <tr>
+      <td><div class="brand-name-cell"><span class="brand-table-logo">${renderBrandLogo(item.logoUrl, `${item.name} 标准 Logo`, "compact")}</span><strong>${escapeHtml(item.name)}</strong></div></td>
+      <td>${escapeHtml(item.code)}</td>
+      <td>${escapeHtml(item.desc)}</td>
+      <td>${escapeHtml(item.createdAt)}</td>
+      <td><button class="link-btn" data-customer-brand-detail="${item.code}">详情</button></td>
+    </tr>`).join("");
+
+  document.getElementById("customerBrandCardView").innerHTML = pageItems.map((item) => `
+    <article class="customer-brand-card">
+      <div class="customer-brand-card-main">
+        <div class="customer-brand-card-logo">${renderBrandLogo(item.logoUrl, `${item.name} 标准 Logo`)}</div>
+        <div class="customer-brand-card-copy"><h3>${escapeHtml(item.name)}</h3><span>品牌编号：${escapeHtml(item.code)}</span><p>${escapeHtml(item.desc)}</p></div>
+      </div>
+      <div class="customer-brand-card-foot"><span>创建时间：${escapeHtml(item.createdAt)}</span><button class="link-btn" data-customer-brand-detail="${item.code}">详情</button></div>
+    </article>`).join("");
+
+  document.getElementById("customerBrandTotal").textContent = `共${total}条`;
+  document.getElementById("customerBrandPageBtn").textContent = state.customerBrandPage;
+  document.getElementById("customerBrandPrevBtn").disabled = state.customerBrandPage <= 1;
+  document.getElementById("customerBrandNextBtn").disabled = state.customerBrandPage >= totalPages;
+  document.getElementById("customerBrandPageSize").value = String(state.customerBrandPageSize);
+}
+
+function activateCustomerTab(panelId) {
+  document.querySelectorAll("[data-customer-tab]").forEach((item) => item.classList.toggle("active", item.dataset.customerTab === panelId));
+  document.querySelectorAll(".customer-tab-panel").forEach((panel) => panel.classList.toggle("active", panel.id === panelId));
+}
+
+function openCustomerBrandDetail(brandCode) {
+  const brand = brands.find((item) => item.code === brandCode);
+  if (!brand) return;
+  state.currentBrandDetailCode = brandCode;
+  document.getElementById("brandDetailName").textContent = brand.name;
+  document.getElementById("brandDetailCode").textContent = brand.code;
+  document.getElementById("brandDetailGroupName").textContent = brand.groupName || "-";
+  document.getElementById("brandDetailIndustry").textContent = brand.industry || "-";
+  document.getElementById("brandDetailCreatedAt").textContent = brand.createdAt || "-";
+  document.getElementById("brandDetailDescription").textContent = brand.desc || "-";
+  document.getElementById("brandDetailStandardLogo").innerHTML = renderBrandLogo(brand.logoUrl, `${brand.name} 标准 Logo`);
+  document.getElementById("brandDetailHorizontalLogo").innerHTML = renderBrandLogo(brand.logoHorizontalUrl, `${brand.name} 横版 Logo`, "horizontal");
+  setView("brandDetailView");
+  window.BrandStoreFeature?.openBrand(brandCode);
+}
+
+function backToCustomerBrandList() {
+  setView("productsView");
+  activateCustomerTab("customerBrandListPanel");
+}
+
 function renderStores() {
   const keyword = document.getElementById("storeSearch").value.trim();
   const rows = stores.filter((item) => !keyword || item.name.includes(keyword) || item.code.includes(keyword));
@@ -333,7 +525,8 @@ function renderStores() {
         <tr>
           <td>${escapeHtml(item.name)}</td>
           <td>${escapeHtml(item.code)}</td>
-          <td>${escapeHtml(item.company)}</td>
+          <td>${escapeHtml(item.taxNo)}</td>
+          <td>${escapeHtml(item.taxpayerName)}</td>
           <td>${statusTag(item.enabled)}</td>
           <td>${escapeHtml(item.updated)}</td>
           <td>${statusAction("store", item)}</td>
@@ -362,6 +555,7 @@ function renderRules() {
           <td>${escapeHtml(item.taxName)}</td>
           <td>${escapeHtml(item.rate)}</td>
           <td>${escapeHtml(item.policy)}</td>
+          <td>${escapeHtml(item.specifiedTaxNo || "-")}</td>
           <td>${escapeHtml(item.updated)}</td>
           <td>
             <button class="link-btn" data-edit-rule="${rules.indexOf(item)}">编辑</button>
@@ -417,10 +611,10 @@ function getRuleBatchMeta(mode = state.ruleBatchMode) {
       returnPanel: "categoryRulePanel",
     },
     taxNo: {
-      title: "批量导入税号匹配规则",
-      hint: "请下载税号匹配规则模板，按模板填写税号和税收分类信息。",
-      fileName: "税号匹配规则导入模板.xlsx",
-      sampleFileName: "税号匹配规则导入示例.xlsx",
+      title: "批量导入税号兜底开票项目",
+      hint: "请下载税号兜底开票项目模板，按模板填写税号和税收分类信息。",
+      fileName: "税号兜底开票项目导入模板.xlsx",
+      sampleFileName: "税号兜底开票项目导入示例.xlsx",
       fields: ["税号", "纳税人名称", "大类别名", "税收分类编码", "税收分类简称", "税率", "优惠政策"],
       returnPanel: "defaultRulePanel",
     },
@@ -549,7 +743,7 @@ function executeRuleBatch() {
     passedRows.forEach((item) => defaultTaxCodes.unshift({ brandCode: state.currentBrandCode, taxNo: item.taxNo, taxpayerName: item.taxpayerName, alias: item.alias, taxCode: item.taxCode, taxName: item.taxName, rate: item.rate, policy: item.policy, updated: "2026-07-21 10:30" }));
     renderDefaultTaxCodes();
   } else {
-    passedRows.forEach((item) => rules.unshift({ brandCode: state.currentBrandCode, category: item.category, alias: item.alias, taxCode: item.taxCode, taxName: item.taxName, rate: item.rate, policy: item.policy, updated: "2026-07-21 10:30" }));
+    passedRows.forEach((item) => rules.unshift({ brandCode: state.currentBrandCode, category: item.category, alias: item.alias, taxCode: item.taxCode, taxName: item.taxName, rate: item.rate, policy: item.policy, specifiedTaxNo: "", updated: "2026-07-21 10:30" }));
     renderRules();
   }
   renderRuleBatchExecute();
@@ -637,7 +831,7 @@ function openDefaultTaxCodeDeletePopover(button, index) {
   if (!config) return;
   const popover = document.getElementById("statusPopover");
   state.statusTarget = { kind: "defaultTaxCode", index, action: "delete" };
-  document.getElementById("statusPopoverText").textContent = "确认删除税号匹配规则？";
+  document.getElementById("statusPopoverText").textContent = "确认删除税号兜底开票项目？";
   popover.classList.remove("hidden");
 
   const rect = button.getBoundingClientRect();
@@ -669,7 +863,7 @@ function confirmStatusChange() {
     defaultTaxCodes.splice(index, 1);
     closeStatusPopover();
     renderDefaultTaxCodes();
-    showToast("已删除税号匹配规则");
+    showToast("已删除税号兜底开票项目");
     return;
   }
   const target = findTarget(kind, id);
@@ -695,6 +889,7 @@ function openRuleModal(ruleIndex = null) {
   document.getElementById("ruleTaxName").value = rule?.taxName || "";
   document.getElementById("ruleRate").value = rule?.rate || "13%";
   document.getElementById("rulePolicy").value = rule?.policy || "无";
+  document.getElementById("ruleSpecifiedTaxNo").value = rule?.specifiedTaxNo || "";
   document.getElementById("ruleError").textContent = "";
   openModal("ruleModal");
 }
@@ -716,6 +911,7 @@ function confirmRule() {
     taxName,
     rate: document.getElementById("ruleRate").value,
     policy: document.getElementById("rulePolicy").value,
+    specifiedTaxNo: document.getElementById("ruleSpecifiedTaxNo").value,
     updated: "2026-07-07 10:30",
   };
   if (state.editingRuleIndex !== null) {
@@ -892,7 +1088,7 @@ function openDefaultTaxCodeModal(defaultIndex = null) {
   const isEditing = defaultIndex !== null;
   const config = isEditing ? defaultTaxCodes[defaultIndex] : null;
   state.editingDefaultTaxCodeIndex = isEditing ? defaultIndex : null;
-  document.getElementById("defaultTaxCodeTitle").textContent = isEditing ? "编辑税号匹配规则" : "新增税号匹配规则";
+  document.getElementById("defaultTaxCodeTitle").textContent = isEditing ? "编辑税号兜底开票项目" : "新增税号兜底开票项目";
   document.getElementById("defaultTaxNo").value = config?.taxNo || "";
   document.getElementById("defaultTaxpayerName").value = config?.taxpayerName || "";
   document.getElementById("defaultAlias").value = config?.alias || "";
@@ -932,7 +1128,7 @@ function confirmDefaultTaxCode() {
   }
   closeModal("defaultTaxCodeModal");
   renderDefaultTaxCodes();
-  showToast(state.editingDefaultTaxCodeIndex !== null ? "已更新税号匹配规则" : "已新增税号匹配规则");
+  showToast(state.editingDefaultTaxCodeIndex !== null ? "已更新税号兜底开票项目" : "已新增税号兜底开票项目");
   state.editingDefaultTaxCodeIndex = null;
 }
 
@@ -974,7 +1170,9 @@ function openBrandSettings(brandCode) {
   renderRules();
   renderDefaultTaxCodes();
   syncSelfReissueView();
+  syncBrandLogoView();
   setEntrySettingMode("self-reissue", false);
+  setEntrySettingMode("page", false);
   setView("brandSettingsView");
 }
 
@@ -996,6 +1194,60 @@ function syncEntrySettingViews() {
   document.getElementById("pageStyleView").textContent = state.pageStyle;
   document.getElementById("themeColorView").textContent = themeNames[state.entryTheme] || "-";
   document.getElementById("invoiceNoteView").innerHTML = state.invoiceNoteHtml || "-";
+  syncBrandLogoView();
+}
+
+function getBrandLogoConfig() {
+  return state.brandLogoByBrand[state.currentBrandCode] || {
+    source: "default",
+    fileName: "",
+    dataUrl: "",
+  };
+}
+
+function renderBrandLogoPreview(target, config) {
+  if (!target) return;
+  const brandName = getCurrentBrandName();
+  target.innerHTML = "";
+  target.classList.toggle("custom", config.source === "custom" && Boolean(config.dataUrl));
+  if (config.source === "custom" && config.dataUrl) {
+    const image = document.createElement("img");
+    image.src = config.dataUrl;
+    image.alt = `${brandName} Logo`;
+    target.appendChild(image);
+    return;
+  }
+  target.textContent = brandName;
+}
+
+function syncBrandLogoView() {
+  const config = getBrandLogoConfig();
+  renderBrandLogoPreview(document.getElementById("brandLogoViewPreview"), config);
+  renderBrandLogoPreview(document.getElementById("phoneBrandLogo"), config);
+}
+
+function syncBrandLogoEdit() {
+  const config = state.brandLogoDraft || { ...getBrandLogoConfig() };
+  renderBrandLogoPreview(document.getElementById("brandLogoEditPreview"), config);
+  renderBrandLogoPreview(document.getElementById("phoneBrandLogo"), config);
+  document.getElementById("brandLogoFileName").textContent = config.source === "custom"
+    ? `已选择：${config.fileName}`
+    : "当前使用品牌横版 Logo";
+  document.getElementById("restoreBrandLogoBtn").disabled = config.source !== "custom";
+}
+
+function handleBrandLogoFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    state.brandLogoDraft = {
+      source: "custom",
+      fileName: file.name,
+      dataUrl: String(reader.result || ""),
+    };
+    syncBrandLogoEdit();
+  });
+  reader.readAsDataURL(file);
 }
 
 function getSelfReissueConfig() {
@@ -1087,6 +1339,9 @@ function cancelQrSetting() {
 function editPageSetting() {
   document.getElementById("pageStyleSelect").value = state.pageStyle;
   document.getElementById("invoiceNote").innerHTML = state.invoiceNoteHtml;
+  state.brandLogoDraft = { ...getBrandLogoConfig() };
+  document.getElementById("brandLogoFile").value = "";
+  syncBrandLogoEdit();
   updatePreviewTheme(state.entryTheme);
   setEntrySettingMode("page", true);
 }
@@ -1095,6 +1350,7 @@ function savePageSetting() {
   state.pageStyle = document.getElementById("pageStyleSelect").value;
   state.entryTheme = state.currentTheme;
   state.invoiceNoteHtml = document.getElementById("invoiceNote").innerHTML.trim();
+  state.brandLogoByBrand[state.currentBrandCode] = { ...(state.brandLogoDraft || getBrandLogoConfig()) };
   syncEntrySettingViews();
   setEntrySettingMode("page", false);
   showToast("已保存开票申请页设置");
@@ -1103,6 +1359,9 @@ function savePageSetting() {
 function cancelPageSetting() {
   document.getElementById("pageStyleSelect").value = state.pageStyle;
   document.getElementById("invoiceNote").innerHTML = state.invoiceNoteHtml;
+  state.brandLogoDraft = { ...getBrandLogoConfig() };
+  document.getElementById("brandLogoFile").value = "";
+  syncBrandLogoView();
   updatePreviewTheme(state.entryTheme);
   setEntrySettingMode("page", false);
 }
@@ -1112,7 +1371,7 @@ function getCurrentBrandName() {
 }
 
 function updateAiContext() {
-  const activeView = document.querySelector(".page-view.active")?.id;
+  const activeView = document.querySelector(".detail-drawer-view.active")?.id || document.querySelector(".page-view.active")?.id;
   const brandName = getCurrentBrandName();
   let scope = "当前范围：斯沃琪集团电子发票";
   let brandContext = "品牌：全部品牌";
@@ -1204,6 +1463,7 @@ function addCategoryRuleByAi(prompt) {
       taxName: "服装",
       rate: "13%",
       policy: "无",
+      specifiedTaxNo: "",
       updated: "2026-07-07 10:30",
     });
     renderRules();
@@ -1336,6 +1596,18 @@ function sendAiMessage(promptValue = "") {
   window.setTimeout(() => addAiMessage("assistant", getAiResponse(prompt), true), 180);
 }
 
+function setSpecifiedTaxNoHelpOpen(open) {
+  const button = document.getElementById("specifiedTaxNoHelpBtn");
+  const popover = document.getElementById("specifiedTaxNoHelpPopover");
+  button.setAttribute("aria-expanded", String(open));
+  popover.classList.toggle("hidden", !open);
+  if (!open) return;
+  const rect = button.getBoundingClientRect();
+  const left = Math.min(rect.left, window.innerWidth - 320);
+  popover.style.left = `${Math.max(12, left)}px`;
+  popover.style.top = `${rect.bottom + 8}px`;
+}
+
 function bindEvents() {
   document.getElementById("enterEinvoiceBtn").addEventListener("click", () => setView("einvoiceView"));
   document.getElementById("backCustomerProductsBtn").addEventListener("click", () => setView("productsView"));
@@ -1353,11 +1625,40 @@ function bindEvents() {
 
   document.querySelectorAll("[data-customer-tab]").forEach((button) => {
     button.addEventListener("click", () => {
-      document.querySelectorAll("[data-customer-tab]").forEach((item) => item.classList.remove("active"));
-      document.querySelectorAll(".customer-tab-panel").forEach((panel) => panel.classList.remove("active"));
-      button.classList.add("active");
-      document.getElementById(button.dataset.customerTab).classList.add("active");
+      activateCustomerTab(button.dataset.customerTab);
     });
+  });
+
+  document.getElementById("brandListViewBtn").addEventListener("click", () => {
+    state.customerBrandViewMode = "list";
+    renderCustomerBrands();
+  });
+  document.getElementById("brandCardViewBtn").addEventListener("click", () => {
+    state.customerBrandViewMode = "card";
+    renderCustomerBrands();
+  });
+  document.getElementById("customerBrandPrevBtn").addEventListener("click", () => {
+    if (state.customerBrandPage <= 1) return;
+    state.customerBrandPage -= 1;
+    renderCustomerBrands();
+  });
+  document.getElementById("customerBrandNextBtn").addEventListener("click", () => {
+    const totalPages = Math.max(1, Math.ceil(brands.length / state.customerBrandPageSize));
+    if (state.customerBrandPage >= totalPages) return;
+    state.customerBrandPage += 1;
+    renderCustomerBrands();
+  });
+  document.getElementById("customerBrandPageSize").addEventListener("change", (event) => {
+    state.customerBrandPageSize = Number(event.target.value);
+    state.customerBrandPage = 1;
+    renderCustomerBrands();
+  });
+  document.getElementById("backFromBrandDetailBtn").addEventListener("click", backToCustomerBrandList);
+  document.getElementById("copyBrandCodeBtn").addEventListener("click", async () => {
+    const brand = brands.find((item) => item.code === state.currentBrandDetailCode);
+    if (!brand) return;
+    try { await navigator.clipboard.writeText(brand.code); } catch (_error) { /* file:// 下可能无法读取剪贴板权限 */ }
+    showToast("品牌编号已复制");
   });
 
   document.querySelectorAll(".workspace-tabs button[data-tab]").forEach((button) => {
@@ -1365,6 +1666,9 @@ function bindEvents() {
   });
 
   document.body.addEventListener("click", (event) => {
+    if (!event.target.closest("#specifiedTaxNoHelpBtn") && !event.target.closest("#specifiedTaxNoHelpPopover")) {
+      setSpecifiedTaxNoHelpOpen(false);
+    }
     const drawerMask = event.target.closest(".drawer-mask");
     if (drawerMask && event.target === drawerMask) {
       closeModal(drawerMask.id);
@@ -1381,6 +1685,8 @@ function bindEvents() {
     if (closeBtn) closeModal(closeBtn.dataset.close);
     const brandBtn = event.target.closest("[data-brand-code]");
     if (brandBtn) openBrandSettings(brandBtn.dataset.brandCode);
+    const customerBrandDetailBtn = event.target.closest("[data-customer-brand-detail]");
+    if (customerBrandDetailBtn) openCustomerBrandDetail(customerBrandDetailBtn.dataset.customerBrandDetail);
     const taxDetailBtn = event.target.closest("[data-tax-detail]");
     if (taxDetailBtn) openTaxNoDetail(taxDetailBtn.dataset.taxDetail);
     const editRuleBtn = event.target.closest("[data-edit-rule]");
@@ -1427,6 +1733,11 @@ function bindEvents() {
   });
   document.getElementById("addRuleBtn").addEventListener("click", () => openRuleModal());
   document.getElementById("confirmRuleBtn").addEventListener("click", confirmRule);
+  document.getElementById("specifiedTaxNoHelpBtn").addEventListener("click", (event) => {
+    event.stopPropagation();
+    const isOpen = event.currentTarget.getAttribute("aria-expanded") === "true";
+    setSpecifiedTaxNoHelpOpen(!isOpen);
+  });
   document.getElementById("ruleTaxCode").addEventListener("input", (event) => {
     document.getElementById("ruleTaxName").value = taxCodeNames[event.target.value.trim()] || "";
   });
@@ -1522,6 +1833,23 @@ function bindEvents() {
   document.getElementById("editPageBtn").addEventListener("click", editPageSetting);
   document.getElementById("savePageBtn").addEventListener("click", savePageSetting);
   document.getElementById("cancelPageBtn").addEventListener("click", cancelPageSetting);
+  document.getElementById("uploadBrandLogoBtn").addEventListener("click", () => {
+    document.getElementById("brandLogoFile").click();
+  });
+  document.getElementById("brandLogoFile").addEventListener("change", (event) => {
+    handleBrandLogoFile(event.target.files?.[0]);
+  });
+  document.getElementById("restoreBrandLogoBtn").addEventListener("click", () => {
+    state.brandLogoDraft = { source: "default", fileName: "", dataUrl: "" };
+    document.getElementById("brandLogoFile").value = "";
+    syncBrandLogoEdit();
+  });
+
+  document.getElementById("detailDrawerBackdrop").addEventListener("click", closeActiveDetailDrawer);
+  document.addEventListener("keydown", (event) => {
+    const blockingLayer = document.querySelector(".modal-mask.active, .ai-chat-mask.active");
+    if (event.key === "Escape" && !blockingLayer && document.querySelector(".detail-drawer-view.active")) closeActiveDetailDrawer();
+  });
 
   document.querySelectorAll(".theme-chip").forEach((button) => {
     button.addEventListener("click", () => updatePreviewTheme(button.dataset.theme));
@@ -1540,6 +1868,7 @@ syncItemNameSourceView();
 updatePreviewTheme(state.entryTheme);
 renderTaxNos();
 renderBrands();
+renderCustomerBrands();
 renderStores();
 renderRules();
 renderDefaultTaxCodes();

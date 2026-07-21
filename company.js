@@ -8,8 +8,9 @@ const companyState = {
   batchStep: 1,
   batchFileName: "",
   batchRows: [],
+  batchOrigin: "company",
   detailCompanyId: null,
-  detailTab: "companyFunctionStatusPanel",
+  detailTab: "companyStoresPanel",
   branchKeyword: "",
   storeFilters: { brand: "", name: "", storeNo: "", storeId: "" },
   storePickerFilters: { brand: "", name: "", storeNo: "", storeId: "" },
@@ -133,7 +134,7 @@ function companyFunctionDescription(company) {
 
 function activateCompanyDetailTab(panelId) {
   const company = getCompanyDetail();
-  if (!company || (panelId === "companyBranchesPanel" && company.type !== "Head")) panelId = "companyFunctionStatusPanel";
+  if (!company || (panelId === "companyBranchesPanel" && company.type !== "Head")) panelId = "companyStoresPanel";
   companyState.detailTab = panelId;
   document.querySelectorAll("[data-company-detail-tab]").forEach((button) => button.classList.toggle("active", button.dataset.companyDetailTab === panelId));
   document.querySelectorAll(".company-detail-tab-panel").forEach((panel) => panel.classList.toggle("active", panel.id === panelId));
@@ -267,7 +268,7 @@ function renderCompanyDetail() {
   failureNode.textContent = company.failureReason || "-";
   failureNode.classList.toggle("hidden", company.invoiceStatus !== "Failed");
   document.getElementById("companyBranchesTab").classList.toggle("hidden", company.type !== "Head");
-  if (company.type !== "Head" && companyState.detailTab === "companyBranchesPanel") companyState.detailTab = "companyFunctionStatusPanel";
+  if (company.type !== "Head" && companyState.detailTab === "companyBranchesPanel") companyState.detailTab = "companyStoresPanel";
   activateCompanyDetailTab(companyState.detailTab);
   renderCompanyBranches();
   renderCompanyStores();
@@ -276,7 +277,7 @@ function renderCompanyDetail() {
 function openCompanyDetail(companyId) {
   if (!companies.some((company) => company.id === companyId)) return;
   companyState.detailCompanyId = companyId;
-  companyState.detailTab = "companyFunctionStatusPanel";
+  companyState.detailTab = "companyStoresPanel";
   companyState.branchKeyword = "";
   companyState.storeFilters = { brand: "", name: "", storeNo: "", storeId: "" };
   document.getElementById("companyBranchKeyword").value = "";
@@ -573,6 +574,7 @@ function getMockBatchRows(mode) {
       buildStoreBatchRow(4, { clientNo: "160247730638", uscc: "91310120MA1HRP974K", companyName: "上海悦投贸易有限公司", storeNo: "STORE-NOT-FOUND", storeName: "示例不存在门店" }),
     ];
   }
+  if (mode === "brandStoreCreate") return window.BrandStoreFeature?.getMockBatchRows() || [];
   return [
     buildInvoiceBatchRow(1, { uscc: "91110000100010433L", taxpayerType: "一般纳税人", taxMethod: "一般计税", levyRate: "-", invoicer: "张珺", phone: "13812346801", role: "办税员" }),
     buildInvoiceBatchRow(2, { uscc: "91310115MA1FAIL001", taxpayerType: "小规模纳税人", taxMethod: "简易计税", levyRate: "3%", invoicer: "李玥", phone: "13912345678", role: "办税员" }),
@@ -610,6 +612,7 @@ function getBatchModeMeta(mode = companyState.batchMode) {
     create: { title: "批量创建公司", executeLabel: "执行导入", hint: "请下载批量创建公司模板，按模板填写公司信息。", fileName: "集团公司批量创建.xlsx", taskType: "CREATE_COMPANY", fields: ["客户编号", "统一社会信用代码", "是否分公司", "上级公司统一社会信用代码", "公司名称", "备注"] },
     invoice: { title: "批量开通发票申请", executeLabel: "执行申请", hint: "请下载批量开通发票模板，按模板填写税务主体和开票人信息。", fileName: "集团公司批量开通发票.xlsx", taskType: "ENABLE_INVOICE", fields: ["集团编号", "统一社会信用代码", "纳税人类型", "计税方式", "征收率", "开票人姓名", "税局登录手机号", "税局密码", "开票人身份"] },
     store: { title: "批量关联门店", executeLabel: "执行关联", hint: "请下载批量关联门店模板，按模板填写公司和门店信息。", fileName: "集团公司批量关联门店.xlsx", taskType: "ASSOCIATE_STORE", fields: ["客户编号", "统一社会信用代码", "公司名称（选填）", "门店编号", "门店名称（选填）"] },
+    brandStoreCreate: { title: "批量创建门店", executeLabel: "执行导入", hint: "请下载批量创建门店模板，按模板填写当前品牌下的门店信息。门店号需在品牌下唯一。", fileName: "批量创建门店.xlsx", taskType: "CREATE_BRAND_STORE", fields: ["门店名称（必填）", "商家门店号（必填）", "所在省（必填）", "所在市（必填）", "所在区（必填）", "详细地址（必填）", "联系电话", "备注"] },
   };
   return map[mode] || map.create;
 }
@@ -626,14 +629,19 @@ function setBatchStage(step) {
 
 function openBatch(mode) {
   companyState.batchMode = mode;
+  companyState.batchOrigin = mode === "brandStoreCreate" ? "brandStore" : "company";
   companyState.batchFileName = "";
   companyState.batchRows = [];
   const meta = getBatchModeMeta(mode);
   document.getElementById("batchBreadcrumb").textContent = meta.title;
+  document.getElementById("batchParentPath").textContent = mode === "brandStoreCreate" ? "我的客户 / 集团商户一号 / 品牌列表 / 品牌详情 / 门店列表" : "我的客户 / 集团商户一号 / 公司列表";
+  document.getElementById("backCompanyListBtn").textContent = mode === "brandStoreCreate" ? "返回门店列表" : "返回客户详情";
+  document.getElementById("batchBackToCompanyBtn").textContent = mode === "brandStoreCreate" ? "返回门店列表" : "返回客户详情";
   document.getElementById("batchPageTitle").textContent = meta.title;
   document.getElementById("batchExecuteStepName").textContent = meta.executeLabel;
   document.getElementById("batchTemplateHint").textContent = meta.hint;
   document.getElementById("batchTemplateFields").innerHTML = meta.fields.map((field) => `<span>${companySafe(field)}</span>`).join("");
+  document.getElementById("batchScopeTag").textContent = mode === "brandStoreCreate" ? (window.BrandStoreFeature?.getScopeLabel() || "品牌：-") : "客户编号：160247730638";
   document.getElementById("batchFileCard").classList.add("hidden");
   document.getElementById("startBatchCheckBtn").disabled = true;
   setBatchStage(1);
@@ -651,17 +659,21 @@ function selectMockBatchFile() {
 function renderBatchCheck() {
   const isCreate = companyState.batchMode === "create";
   const isStore = companyState.batchMode === "store";
+  const isBrandStoreCreate = companyState.batchMode === "brandStoreCreate";
   document.getElementById("batchCheckTotal").textContent = companyState.batchRows.length;
   document.getElementById("batchCheckPass").textContent = companyState.batchRows.filter((item) => item.check === "通过").length;
   document.getElementById("batchCheckFail").textContent = companyState.batchRows.filter((item) => item.check !== "通过").length;
   document.getElementById("executeBatchBtn").textContent = getBatchModeMeta().executeLabel;
-  document.getElementById("batchCheckHead").innerHTML = isCreate
+  document.getElementById("batchCheckHead").innerHTML = isBrandStoreCreate
+    ? "<tr><th>行号</th><th>门店名称</th><th>商家门店号</th><th>所在省</th><th>所在市</th><th>所在区</th><th>详细地址</th><th>检查结果</th><th>原因</th></tr>"
+    : isCreate
     ? "<tr><th>行号</th><th>统一社会信用代码</th><th>公司名称</th><th>是否分公司</th><th>上级公司</th><th>检查结果</th><th>原因</th></tr>"
     : isStore
       ? "<tr><th>行号</th><th>客户编号</th><th>统一社会信用代码</th><th>公司名称</th><th>门店编号</th><th>门店名称</th><th>检查结果</th><th>原因</th></tr>"
       : "<tr><th>行号</th><th>统一社会信用代码</th><th>公司名称</th><th>当前状态</th><th>纳税人类型</th><th>计税方式</th><th>征收率</th><th>开票人姓名</th><th>手机号</th><th>身份</th><th>检查结果</th><th>原因</th></tr>";
   document.getElementById("batchCheckRows").innerHTML = companyState.batchRows.map((item) => {
     const result = `<span class="result-badge ${item.check === "通过" ? "result-success" : "result-fail"}">${item.check}</span>`;
+    if (isBrandStoreCreate) return `<tr><td>${item.row}</td><td>${companySafe(item.name)}</td><td>${companySafe(item.storeNo)}</td><td>${companySafe(item.province)}</td><td>${companySafe(item.city)}</td><td>${companySafe(item.district)}</td><td>${companySafe(item.address)}</td><td>${result}</td><td>${companySafe(item.reason)}</td></tr>`;
     if (isCreate) return `<tr><td>${item.row}</td><td>${item.uscc}</td><td>${item.name}</td><td>${item.type === "分公司" ? "是" : "否"}</td><td>${item.parent}</td><td>${result}</td><td>${item.reason}</td></tr>`;
     if (isStore) return `<tr><td>${item.row}</td><td>${item.clientNo}</td><td>${item.uscc}</td><td>${companySafe(item.resolvedCompanyName)}</td><td>${companySafe(item.storeNo)}</td><td>${companySafe(item.resolvedStoreName)}</td><td>${result}</td><td>${companySafe(item.reason)}</td></tr>`;
     return `<tr><td>${item.row}</td><td>${item.uscc}</td><td>${item.name}</td><td>${item.current}</td><td>${item.taxpayerType}</td><td>${item.taxMethod}</td><td>${item.levyRate === "-" ? "不适用" : item.levyRate}</td><td>${item.invoicer}</td><td>${item.phone}</td><td>${item.role}</td><td>${result}</td><td>${item.reason}</td></tr>`;
@@ -674,7 +686,9 @@ function executeBatch() {
     item.execute = item.check === "通过" ? "成功" : "跳过";
     item.executeReason = item.check === "通过" ? "-" : item.reason;
   });
-  if (companyState.batchMode === "create") {
+  if (companyState.batchMode === "brandStoreCreate") {
+    window.BrandStoreFeature?.executeBatchRows(passedRows);
+  } else if (companyState.batchMode === "create") {
     passedRows.forEach((item) => {
       if (companies.some((company) => company.uscc === item.uscc)) return;
       const parent = companies.find((company) => company.name === item.parent);
@@ -718,7 +732,7 @@ function executeBatch() {
     success: passedRows.length,
     executeFail: 0,
     skipped: companyState.batchRows.length - passedRows.length,
-    rows: companyState.batchRows.map((item) => ({ row: item.row, clientNo: item.clientNo, uscc: item.uscc, name: item.name, companyName: item.resolvedCompanyName || item.name, storeNo: item.storeNo, storeName: item.resolvedStoreName, taxpayerType: item.taxpayerType, taxMethod: item.taxMethod, levyRate: item.levyRate, check: item.check, execute: item.execute, reason: item.executeReason })),
+    rows: companyState.batchRows.map((item) => ({ row: item.row, clientNo: item.clientNo, uscc: item.uscc, name: item.name, companyName: item.resolvedCompanyName || item.name, storeNo: item.storeNo, storeName: item.resolvedStoreName, type: item.type, region: item.region, province: item.province, city: item.city, district: item.district, address: item.address, taxpayerType: item.taxpayerType, taxMethod: item.taxMethod, levyRate: item.levyRate, check: item.check, execute: item.execute, reason: item.executeReason })),
   };
   batchTasks.unshift(task);
   renderCompanies();
@@ -734,13 +748,17 @@ function renderBatchExecute() {
   document.getElementById("batchSkippedCount").textContent = skipped;
   const isStore = companyState.batchMode === "store";
   const isInvoice = companyState.batchMode === "invoice";
-  document.getElementById("batchExecuteHead").innerHTML = isStore
+  const isBrandStoreCreate = companyState.batchMode === "brandStoreCreate";
+  document.getElementById("batchExecuteHead").innerHTML = isBrandStoreCreate
+    ? "<tr><th>行号</th><th>门店名称</th><th>商家门店号</th><th>所在省</th><th>所在市</th><th>所在区</th><th>执行结果</th><th>原因/备注</th></tr>"
+    : isStore
     ? "<tr><th>行号</th><th>客户编号</th><th>统一社会信用代码</th><th>公司名称</th><th>门店编号</th><th>门店名称</th><th>执行结果</th><th>原因/备注</th></tr>"
     : isInvoice
       ? "<tr><th>行号</th><th>统一社会信用代码</th><th>公司名称</th><th>纳税人类型</th><th>计税方式</th><th>征收率</th><th>执行结果</th><th>原因/备注</th></tr>"
       : "<tr><th>行号</th><th>统一社会信用代码</th><th>公司名称</th><th>执行结果</th><th>原因/备注</th></tr>";
   document.getElementById("batchExecuteRows").innerHTML = companyState.batchRows.map((item) => {
     const result = `<span class="result-badge ${item.execute === "成功" ? "result-success" : "status-unopened"}">${item.execute}</span>`;
+    if (isBrandStoreCreate) return `<tr><td>${item.row}</td><td>${companySafe(item.name)}</td><td>${companySafe(item.storeNo)}</td><td>${companySafe(item.province)}</td><td>${companySafe(item.city)}</td><td>${companySafe(item.district)}</td><td>${result}</td><td>${companySafe(item.executeReason)}</td></tr>`;
     if (isStore) return `<tr><td>${item.row}</td><td>${item.clientNo}</td><td>${item.uscc}</td><td>${companySafe(item.resolvedCompanyName)}</td><td>${companySafe(item.storeNo)}</td><td>${companySafe(item.resolvedStoreName)}</td><td>${result}</td><td>${companySafe(item.executeReason)}</td></tr>`;
     if (isInvoice) return `<tr><td>${item.row}</td><td>${item.uscc}</td><td>${item.name}</td><td>${item.taxpayerType}</td><td>${item.taxMethod}</td><td>${item.levyRate === "-" ? "不适用" : item.levyRate}</td><td>${result}</td><td>${item.executeReason}</td></tr>`;
     return `<tr><td>${item.row}</td><td>${item.uscc}</td><td>${item.name}</td><td>${result}</td><td>${item.executeReason}</td></tr>`;
@@ -757,7 +775,7 @@ function batchTaskStatusMeta(status) {
 }
 
 function batchTaskTypeLabel(type) {
-  const labels = { CREATE_COMPANY: "批量创建公司", ENABLE_INVOICE: "批量开通发票申请", ASSOCIATE_STORE: "批量关联门店" };
+  const labels = { CREATE_COMPANY: "批量创建公司", ENABLE_INVOICE: "批量开通发票申请", ASSOCIATE_STORE: "批量关联门店", CREATE_BRAND_STORE: "批量创建门店" };
   return labels[type] || type;
 }
 
@@ -779,6 +797,14 @@ function openBatchRecords() {
   setView("batchRecordsView");
 }
 
+function returnFromCompanyBatch() {
+  if (companyState.batchOrigin === "brandStore") {
+    window.BrandStoreFeature?.returnFromBatch();
+    return;
+  }
+  setView("productsView");
+}
+
 function openBatchTaskDetail(taskId) {
   const task = batchTasks.find((item) => item.id === taskId);
   if (!task) return;
@@ -789,12 +815,16 @@ function openBatchTaskDetail(taskId) {
   document.getElementById("batchRecordDetailStats").innerHTML = `<span>总行数：<strong>${task.total}</strong></span><span class="success-text">通过：<strong>${task.pass}</strong></span><span class="danger-text">不通过：<strong>${task.fail}</strong></span><span class="success-text">执行成功：<strong>${task.success}</strong></span><span>跳过：<strong>${task.skipped}</strong></span>`;
   const isStore = task.type === "ASSOCIATE_STORE";
   const isInvoice = task.type === "ENABLE_INVOICE";
-  document.getElementById("batchRecordDetailHead").innerHTML = isStore
+  const isBrandStoreCreate = task.type === "CREATE_BRAND_STORE";
+  document.getElementById("batchRecordDetailHead").innerHTML = isBrandStoreCreate
+    ? "<tr><th>行号</th><th>门店名称</th><th>商家门店号</th><th>所在省</th><th>所在市</th><th>所在区</th><th>检查结果</th><th>执行结果</th><th>原因/备注</th></tr>"
+    : isStore
     ? "<tr><th>行号</th><th>客户编号</th><th>统一社会信用代码</th><th>公司名称</th><th>门店编号</th><th>门店名称</th><th>检查结果</th><th>执行结果</th><th>原因/备注</th></tr>"
     : isInvoice
       ? "<tr><th>行号</th><th>统一社会信用代码</th><th>公司名称</th><th>纳税人类型</th><th>计税方式</th><th>征收率</th><th>检查结果</th><th>执行结果</th><th>原因/备注</th></tr>"
       : "<tr><th>行号</th><th>统一社会信用代码</th><th>公司名称</th><th>检查结果</th><th>执行结果</th><th>原因/备注</th></tr>";
   document.getElementById("batchRecordDetailRows").innerHTML = task.rows.map((row) => {
+    if (isBrandStoreCreate) return `<tr><td>${row.row}</td><td>${companySafe(row.name)}</td><td>${companySafe(row.storeNo)}</td><td>${companySafe(row.province)}</td><td>${companySafe(row.city)}</td><td>${companySafe(row.district)}</td><td>${row.check}</td><td>${row.execute}</td><td>${companySafe(row.reason)}</td></tr>`;
     if (isStore) return `<tr><td>${row.row}</td><td>${row.clientNo}</td><td>${row.uscc}</td><td>${companySafe(row.companyName)}</td><td>${companySafe(row.storeNo)}</td><td>${companySafe(row.storeName)}</td><td>${row.check}</td><td>${row.execute}</td><td>${companySafe(row.reason)}</td></tr>`;
     if (isInvoice) return `<tr><td>${row.row}</td><td>${row.uscc}</td><td>${row.name}</td><td>${row.taxpayerType || "-"}</td><td>${row.taxMethod || "-"}</td><td>${row.levyRate === "-" ? "不适用" : (row.levyRate || "-")}</td><td>${row.check}</td><td>${row.execute}</td><td>${row.reason}</td></tr>`;
     return `<tr><td>${row.row}</td><td>${row.uscc}</td><td>${row.name}</td><td>${row.check}</td><td>${row.execute}</td><td>${row.reason}</td></tr>`;
@@ -811,7 +841,7 @@ function bindCompanyEvents() {
   document.getElementById("batchCreateCompanyBtn").addEventListener("click", () => openBatch("create"));
   document.getElementById("batchEnableInvoiceBtn").addEventListener("click", () => openBatch("invoice"));
   document.getElementById("batchAssociateStoresBtn").addEventListener("click", () => openBatch("store"));
-  document.getElementById("batchOperationRecordsBtn").addEventListener("click", openBatchRecords);
+  document.getElementById("batchOperationRecordsBtn").addEventListener("click", () => { companyState.batchOrigin = "company"; openBatchRecords(); });
   document.getElementById("companySearchBtn").addEventListener("click", () => {
     companyState.keyword = document.getElementById("companyKeyword").value.trim();
     companyState.type = document.getElementById("companyTypeFilter").value;
@@ -878,11 +908,11 @@ function bindCompanyEvents() {
     if (company.invoiceStatus === "Unopened" || company.invoiceStatus === "Failed") openEnableInvoice(company.id);
     else openInvoiceProgress(company.id);
   });
-  document.getElementById("backCompanyListBtn").addEventListener("click", () => setView("productsView"));
-  document.getElementById("batchBackToCompanyBtn").addEventListener("click", () => setView("productsView"));
+  document.getElementById("backCompanyListBtn").addEventListener("click", returnFromCompanyBatch);
+  document.getElementById("batchBackToCompanyBtn").addEventListener("click", returnFromCompanyBatch);
   document.getElementById("batchRecordsShortcutBtn").addEventListener("click", openBatchRecords);
   document.getElementById("viewBatchRecordsBtn").addEventListener("click", openBatchRecords);
-  document.getElementById("backFromBatchRecordsBtn").addEventListener("click", () => setView("productsView"));
+  document.getElementById("backFromBatchRecordsBtn").addEventListener("click", returnFromCompanyBatch);
   document.getElementById("downloadBatchTemplateBtn").addEventListener("click", () => showToast(`已下载${getBatchModeMeta().title}模板`));
   document.getElementById("selectBatchFileBtn").addEventListener("click", selectMockBatchFile);
   document.getElementById("removeBatchFileBtn").addEventListener("click", () => { companyState.batchFileName = ""; companyState.batchRows = []; document.getElementById("batchFileCard").classList.add("hidden"); document.getElementById("startBatchCheckBtn").disabled = true; });
