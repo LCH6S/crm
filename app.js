@@ -986,11 +986,6 @@ function updatePreviewTheme(theme) {
   preview.classList.toggle("theme-red-white", theme === "red-white");
 }
 
-function updatePreviewNote() {
-  const text = document.getElementById("invoiceNote").innerText.trim();
-  document.getElementById("previewNote").textContent = text || "请确认订单信息后提交开票申请。";
-}
-
 function setEntrySettingMode(section, isEditing) {
   document.querySelectorAll(`[data-view-for="${section}"]`).forEach((item) => item.classList.toggle("hidden", isEditing));
   document.querySelectorAll(`[data-edit-for="${section}"]`).forEach((item) => item.classList.toggle("hidden", !isEditing));
@@ -1093,7 +1088,6 @@ function editPageSetting() {
   document.getElementById("pageStyleSelect").value = state.pageStyle;
   document.getElementById("invoiceNote").innerHTML = state.invoiceNoteHtml;
   updatePreviewTheme(state.entryTheme);
-  updatePreviewNote();
   setEntrySettingMode("page", true);
 }
 
@@ -1102,7 +1096,6 @@ function savePageSetting() {
   state.entryTheme = state.currentTheme;
   state.invoiceNoteHtml = document.getElementById("invoiceNote").innerHTML.trim();
   syncEntrySettingViews();
-  updatePreviewNote();
   setEntrySettingMode("page", false);
   showToast("已保存开票申请页设置");
 }
@@ -1111,7 +1104,6 @@ function cancelPageSetting() {
   document.getElementById("pageStyleSelect").value = state.pageStyle;
   document.getElementById("invoiceNote").innerHTML = state.invoiceNoteHtml;
   updatePreviewTheme(state.entryTheme);
-  updatePreviewNote();
   setEntrySettingMode("page", false);
 }
 
@@ -1537,10 +1529,8 @@ function bindEvents() {
   document.querySelectorAll(".editor-toolbar button").forEach((button) => {
     button.addEventListener("click", () => {
       document.execCommand(button.dataset.command, false);
-      updatePreviewNote();
     });
   });
-  document.getElementById("invoiceNote").addEventListener("input", updatePreviewNote);
 
 }
 
@@ -1548,7 +1538,6 @@ syncEntrySettingViews();
 syncSelfReissueView();
 syncItemNameSourceView();
 updatePreviewTheme(state.entryTheme);
-updatePreviewNote();
 renderTaxNos();
 renderBrands();
 renderStores();
