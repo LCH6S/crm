@@ -38,22 +38,26 @@
           <div class="breadcrumb page-breadcrumb">主页　/　客户详情</div>
           <section class="customer-summary">
             <div class="customer-summary-main">
-              <p class="summary-eyebrow">我的客户详情</p>
               <h1>集团商户一号</h1>
-              <div class="summary-tags"><span>集团客户</span><span>客户编号：160247730638</span></div>
+              <div class="summary-tags"><span>客户编号：160247730638</span></div>
             </div>
-            <dl>
+          </section>
+          <div class="brand-tabs" role="tablist" aria-label="客户详情">
+            <button class="active" data-customer-tab="customerBasicInfoPanel">基础信息</button>
+            <button data-customer-tab="companyListPanel">公司列表</button>
+            <button data-customer-tab="customerBrandListPanel">品牌列表</button>
+            <button data-customer-tab="productFeaturePanel">产品功能</button>
+          </div>
+          <section class="customer-tab-panel active customer-basic-info-panel" id="customerBasicInfoPanel">
+            <dl class="entity-basic-info-grid">
+              <div><dt>客户名称</dt><dd>集团商户一号</dd></div>
+              <div><dt>客户编号</dt><dd>160247730638</dd></div>
               <div><dt>销售人员</dt><dd>张珺</dd></div>
               <div><dt>销售组织</dt><dd>大客户 / 总部 / Stanley的组织</dd></div>
               <div><dt>创建时间</dt><dd>2019-11-01 13:48</dd></div>
             </dl>
           </section>
-          <div class="brand-tabs" role="tablist" aria-label="客户详情">
-            <button class="active" data-customer-tab="companyListPanel">公司列表</button>
-            <button data-customer-tab="customerBrandListPanel">品牌列表</button>
-            <button data-customer-tab="productFeaturePanel">产品功能</button>
-          </div>
-          <section class="customer-tab-panel active" id="companyListPanel">
+          <section class="customer-tab-panel" id="companyListPanel">
             <div class="company-toolbar">
               <div class="company-filters">
                 <label><span>公司：</span><input id="companyKeyword" placeholder="公司名称/统一社会信用代码" /></label>
@@ -92,9 +96,7 @@
           </section>
           <section class="customer-tab-panel customer-brand-panel" id="customerBrandListPanel">
             <div class="customer-brand-toolbar">
-              <div>
-                <h2>品牌列表</h2>
-              </div>
+              <button class="primary-btn" id="createCustomerBrandBtn" type="button">创建品牌</button>
               <div class="brand-view-switch" role="group" aria-label="品牌列表展示方式">
                 <button class="default-btn small" id="brandCardViewBtn" type="button" aria-pressed="false">▦ 卡片</button>
                 <button class="default-btn small active" id="brandListViewBtn" type="button" aria-pressed="true">☷ 列表</button>
@@ -120,7 +122,7 @@
           </section>
         </section>
 
-        <section class="page-view detail-drawer-view detail-drawer-brand" id="brandDetailView" data-drawer-base="productsView" aria-label="品牌详情" aria-hidden="true" tabindex="-1">
+        <section class="page-view brand-detail-page" id="brandDetailView" aria-label="品牌详情">
           <div class="brand-detail-page-breadcrumb">主页&nbsp;&nbsp;/&nbsp;&nbsp;我的客户</div>
           <div class="brand-detail-back-row">
             <button class="default-btn" id="backFromBrandDetailBtn" type="button">返回</button>
@@ -128,37 +130,37 @@
           <section class="brand-detail-summary">
             <div class="brand-detail-title-row">
               <div>
-                <div class="brand-detail-eyebrow">品牌详情</div>
                 <div class="brand-detail-name-line"><h1 id="brandDetailName">-</h1></div>
-                <div class="brand-detail-number"><span class="brand-detail-tag">品牌</span><span>品牌编号：</span><strong id="brandDetailCode">-</strong><button class="copy-btn" id="copyBrandCodeBtn" type="button" aria-label="复制品牌编号">▣</button></div>
+                <div class="brand-detail-number"><span>品牌编号：</span><strong id="brandDetailCode">-</strong><button class="copy-btn" id="copyBrandCodeBtn" type="button" aria-label="复制品牌编号">▣</button></div>
               </div>
             </div>
-            <dl class="brand-detail-meta">
-              <div><dt>所属客户</dt><dd id="brandDetailGroupName">-</dd></div>
-              <div><dt>所属行业</dt><dd id="brandDetailIndustry">-</dd></div>
-              <div><dt>创建时间</dt><dd id="brandDetailCreatedAt">-</dd></div>
-            </dl>
           </section>
           <section class="panel brand-detail-content">
             <div class="workspace-tabs brand-store-tabs" role="tablist" aria-label="品牌详情">
               <button class="active" data-brand-detail-tab="brandBasicInfoPanel">基础信息</button>
+              <button data-brand-detail-tab="brandLogoSetsPanel">Logo 管理</button>
               <button data-brand-detail-tab="brandStoreListPanel">门店列表</button>
             </div>
             <section class="brand-detail-tab-panel active" id="brandBasicInfoPanel">
-              <div class="brand-detail-description">
-                <span>品牌描述</span>
-                <p id="brandDetailDescription">-</p>
-              </div>
-              <div class="brand-logo-simple-grid">
-                <div class="brand-logo-simple-item">
-                  <div class="brand-logo-simple-label">品牌 Logo（标准）</div>
-                  <div class="brand-logo-stage square" id="brandDetailStandardLogo"></div>
+              <div class="entity-basic-info-actions"><button class="default-btn" id="editBrandBasicBtn" type="button">编辑</button></div>
+              <dl class="brand-detail-meta entity-basic-info-grid">
+                <div><dt>品牌名称</dt><dd id="brandBasicName">-</dd></div>
+                <div><dt>品牌编号</dt><dd id="brandBasicCode">-</dd></div>
+                <div><dt>所属客户</dt><dd id="brandDetailGroupName">-</dd></div>
+                <div><dt>所属行业</dt><dd id="brandDetailIndustry">-</dd></div>
+                <div><dt>创建时间</dt><dd id="brandDetailCreatedAt">-</dd></div>
+                <div class="entity-basic-info-span-full"><dt>品牌描述</dt><dd id="brandDetailDescription">-</dd></div>
+              </dl>
+            </section>
+            <section class="brand-detail-tab-panel" id="brandLogoSetsPanel">
+              <div class="brand-logo-set-toolbar">
+                <div><h2>Logo 方案</h2><p>管理品牌在不同样式和颜色场景下使用的 Logo 组合，最多 7 组（含默认版本）。</p></div>
+                <div class="brand-logo-set-toolbar-actions">
+                  <span class="brand-logo-set-limit" id="brandLogoSetCount">已设置 0 / 7 组</span>
+                  <button class="primary-btn" id="addBrandLogoSetBtn" type="button">添加 Logo 方案</button>
                 </div>
-                <div class="brand-logo-simple-item">
-                  <div class="brand-logo-simple-label">品牌 Logo（横版）</div>
-                  <div class="brand-logo-stage horizontal" id="brandDetailHorizontalLogo"></div>
-                </div>
               </div>
+              <div class="brand-logo-set-list" id="brandLogoSetList"></div>
             </section>
             <section class="brand-detail-tab-panel" id="brandStoreListPanel">
               <div class="brand-store-filters">
@@ -183,10 +185,10 @@
           </section>
         </section>
 
-        <section class="page-view detail-drawer-view detail-drawer-store" id="brandStoreDetailView" data-drawer-base="productsView" aria-label="门店详情" aria-hidden="true" tabindex="-1">
+        <section class="page-view detail-drawer-view detail-drawer-store" id="brandStoreDetailView" data-drawer-base="brandDetailView" aria-label="门店详情" aria-hidden="true" tabindex="-1">
           <div class="page-back-row"><button class="default-btn" id="backFromBrandStoreDetailBtn">返回品牌详情</button></div>
           <div class="settings-head brand-store-detail-head">
-            <div><div class="breadcrumb">我的客户 / 集团商户一号 / 品牌列表 / <span id="brandStoreDetailBrandCrumb">-</span> / 门店详情</div><h1 id="brandStoreDetailName">-</h1><div class="head-tags"><span id="brandStoreDetailNoTag">门店号：-</span><span id="brandStoreDetailIdTag">门店ID：-</span></div></div>
+            <div><h1 id="brandStoreDetailName">-</h1><div class="head-tags"><span id="brandStoreDetailNoTag">门店号：-</span><span id="brandStoreDetailIdTag">门店ID：-</span></div></div>
             <div class="head-actions"><button class="primary-btn" id="editBrandStoreBtn">编辑门店信息</button></div>
           </div>
           <section class="panel brand-store-detail-card">
@@ -200,7 +202,6 @@
           <section class="company-detail-summary">
             <div class="company-detail-title-row">
               <div>
-                <div class="breadcrumb">我的客户 / 集团商户一号 / 公司详情</div>
                 <div class="company-detail-name-line">
                   <h1 id="companyDetailName">-</h1>
                   <span class="company-type" id="companyDetailType">-</span>
@@ -210,24 +211,29 @@
                   <span>公司ID：<strong id="companyDetailCode">-</strong> <button class="copy-btn" id="copyCompanyCodeBtn" type="button" aria-label="复制公司ID">▣</button></span>
                 </div>
               </div>
-              <div class="head-actions">
-                <button class="default-btn" id="editCompanyDetailBtn">编辑信息</button>
-              </div>
             </div>
-            <dl class="company-detail-meta">
-              <div><dt>所属客户</dt><dd>集团商户一号</dd></div>
-              <div><dt>上级公司</dt><dd id="companyDetailParent">-</dd></div>
-              <div><dt>创建时间</dt><dd id="companyDetailCreatedAt">-</dd></div>
-              <div><dt>备注</dt><dd id="companyDetailRemark">-</dd></div>
-            </dl>
           </section>
 
           <section class="panel company-detail-content">
             <div class="workspace-tabs company-detail-tabs" role="tablist" aria-label="公司详情">
-              <button class="active" data-company-detail-tab="companyStoresPanel">门店管理</button>
+              <button class="active" data-company-detail-tab="companyBasicInfoPanel">基础信息</button>
+              <button data-company-detail-tab="companyStoresPanel">门店管理</button>
               <button id="companyBranchesTab" data-company-detail-tab="companyBranchesPanel">分公司管理</button>
               <button data-company-detail-tab="companyFunctionStatusPanel">功能状态</button>
             </div>
+            <section class="company-detail-tab-panel active company-basic-info-panel" id="companyBasicInfoPanel">
+              <div class="entity-basic-info-actions"><button class="default-btn" id="editCompanyDetailBtn">编辑信息</button></div>
+              <dl class="company-detail-meta entity-basic-info-grid">
+                <div><dt>公司名称</dt><dd id="companyBasicName">-</dd></div>
+                <div><dt>公司类型</dt><dd id="companyBasicType">-</dd></div>
+                <div><dt>统一社会信用代码</dt><dd id="companyBasicUscc">-</dd></div>
+                <div><dt>公司 ID</dt><dd id="companyBasicCode">-</dd></div>
+                <div><dt>所属客户</dt><dd>集团商户一号</dd></div>
+                <div><dt>上级公司</dt><dd id="companyDetailParent">-</dd></div>
+                <div><dt>创建时间</dt><dd id="companyDetailCreatedAt">-</dd></div>
+                <div><dt>备注</dt><dd id="companyDetailRemark">-</dd></div>
+              </dl>
+            </section>
             <section class="company-detail-tab-panel" id="companyFunctionStatusPanel">
               <div class="section-heading"><h2>功能列表</h2><p class="section-description">查看并管理该公司已开通的产品功能。</p></div>
               <button class="company-function-card" id="companyInvoiceFunctionCard" type="button">
@@ -251,7 +257,7 @@
               </div>
               <div class="company-pagination"><span id="companyBranchTotal">共0条</span><button class="page-arrow" disabled>‹</button><button class="page-current">1</button><button class="page-arrow" disabled>›</button><select aria-label="分公司每页条数"><option>10 条/页</option></select></div>
             </section>
-            <section class="company-detail-tab-panel active" id="companyStoresPanel">
+            <section class="company-detail-tab-panel" id="companyStoresPanel">
               <div class="company-store-filters">
                 <label>所属品牌<select id="companyStoreBrandFilter"><option value="">全部品牌</option></select></label>
                 <label>门店名<input id="companyStoreNameFilter" placeholder="请输入门店名" /></label>
@@ -384,7 +390,6 @@
           <div class="page-back-row"><button class="default-btn" id="backCustomerProductsBtn">返回</button></div>
           <div class="settings-head">
             <div>
-              <div class="breadcrumb">我的客户 / 集团商户一号 / 产品功能 / 电子发票设置</div>
               <h1>集团商户一号电子发票设置</h1>
               <div class="head-tags">
                 <span>客户编号：160247730638</span>
@@ -395,6 +400,7 @@
           <div class="workspace-tabs" role="tablist" aria-label="电子发票设置" data-tab-group="customerEinvoice">
             <button class="active" data-tab="taxNoPanel">纳税人管理</button>
             <button data-tab="brandPanel">品牌开票设置</button>
+            <button data-tab="leqiSelfUsePanel">乐企自用</button>
           </div>
 
           <section class="tab-panel active" id="taxNoPanel" data-tab-group="customerEinvoice">
@@ -435,24 +441,58 @@
               </div>
             </div>
           </section>
+
+          <section class="tab-panel" id="leqiSelfUsePanel" data-tab-group="customerEinvoice">
+            <div class="leqi-self-use-overview">
+              <section class="panel leqi-direct-unit-card">
+                <div class="panel-head">
+                  <div>
+                    <div class="leqi-title-line"><h2>直连单位信息</h2><span class="tag green" id="leqiAccessStatus">已接入</span></div>
+                    <p>由开发在后端维护企享云接入参数，CRM 仅展示配置结果。</p>
+                  </div>
+                  <button class="primary-btn" id="detectLeqiCompaniesBtn">检测可接入公司</button>
+                </div>
+                <dl class="leqi-direct-unit-grid">
+                  <div><dt>直连单位名称</dt><dd>集团商户一号总部</dd></div>
+                  <div><dt>直连单位税号</dt><dd>91310120MA1HRP974K</dd></div>
+                  <div><dt>乐企 ID</dt><dd>LQ-SQBY-100086</dd></div>
+                  <div><dt>企享云租户标识</dt><dd>sqb_group_demo</dd></div>
+                  <div><dt>AppId</dt><dd>qxy_********_8f21</dd></div>
+                  <div><dt>接入环境</dt><dd>生产环境</dd></div>
+                  <div><dt>配置状态</dt><dd><span class="tag green">已配置</span></dd></div>
+                  <div><dt>最近验证时间</dt><dd>2026-07-22 11:26</dd></div>
+                </dl>
+                <p class="leqi-security-note">为保护接入安全，AppSecret、ContentSecret 等密钥不在 CRM 中展示。</p>
+              </section>
+
+              <section class="panel leqi-use-unit-card">
+                <div class="panel-head"><div><h2>已接入使用单位</h2><p>展示已加入当前直连单位的公司；使用单位接入关系与当前开票通道分别管理。</p></div></div>
+                <div class="table-scroll">
+                  <table class="data-table wide">
+                    <thead><tr><th>公司名称</th><th>税号</th><th>纳税人类型</th><th>接入时间</th></tr></thead>
+                    <tbody id="leqiConnectedCompanyRows"></tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+          </section>
         </section>
 
         <section class="page-view detail-drawer-view detail-drawer-taxpayer" id="taxNoDetailView" data-drawer-base="einvoiceView" aria-label="纳税人详情" aria-hidden="true" tabindex="-1">
           <div class="page-back-row"><button class="default-btn" id="backTaxNoListBtn">返回</button></div>
           <div class="settings-head">
             <div>
-              <div class="breadcrumb">我的客户 / 集团商户一号 / 电子发票设置 / 纳税人详情</div>
+              <div class="breadcrumb">纳税人详情</div>
               <h1 id="taxNoDetailTitle">纳税人详情</h1>
               <div class="head-tags"><span id="taxNoDetailSummary">税号：-</span></div>
             </div>
             <div class="head-actions tax-detail-head-actions" id="taxNoStatusActions">
               <div class="tax-detail-status-stack">
-                <div class="tax-detail-header-field">
+                <div class="tax-detail-header-field tax-detail-status-field">
                   <span class="tax-detail-header-label">开票功能状态</span>
                   <div id="detailInvoiceStatus"></div>
                 </div>
                 <div class="tax-detail-header-field" id="taxNoStatusOperation">
-                  <span class="tax-detail-header-label">操作</span>
                   <button class="default-btn small danger-outline" id="detailInvoiceStatusBtn">禁用</button>
                 </div>
               </div>
@@ -462,31 +502,11 @@
             <section class="panel tax-detail-card">
               <div class="panel-head">
                 <div><h2>基本信息</h2><p>维护纳税人登记信息和计税属性。</p></div>
-                <div class="panel-actions view-only" data-view-for="tax-no-basic"><button class="default-btn small" id="editTaxNoBasicBtn">编辑</button></div>
-                <div class="panel-actions edit-only hidden" data-edit-for="tax-no-basic">
-                  <button class="default-btn small" id="cancelTaxNoBasicBtn">取消</button><button class="primary-btn small" id="saveTaxNoBasicBtn">保存</button>
-                </div>
+                <div class="panel-actions"><button class="default-btn small" id="editTaxNoBasicBtn">编辑</button></div>
               </div>
-              <div id="taxNoBasicInfoView" class="view-only" data-view-for="tax-no-basic">
+              <div id="taxNoBasicInfoView">
                 <div class="tax-detail-subsection"><h3>企业登记信息</h3><dl class="tax-detail-read-grid" id="taxNoRegistrationView"></dl></div>
                 <div class="tax-detail-subsection"><h3>计税信息</h3><dl class="tax-detail-read-grid compact" id="taxNoTaxInfoView"></dl></div>
-              </div>
-              <div id="taxNoBasicInfoEdit" class="edit-only hidden" data-edit-for="tax-no-basic">
-                <div class="tax-detail-subsection"><h3>企业登记信息</h3>
-                  <div class="form-grid tax-detail-form-grid">
-                    <label>纳税人名称<input id="detailTaxpayerName" readonly /></label><label>税号<input id="detailTaxNo" readonly /></label>
-                    <label>所在地区<select id="detailRegion"></select></label><label>地址<input id="detailAddress" placeholder="请输入地址" /></label>
-                    <label>联系电话<input id="detailPhone" placeholder="请输入联系电话" /></label><label>开户行名称<input id="detailBankName" placeholder="请输入开户行名称" /></label>
-                    <label>开户行账号<input id="detailBankAccount" placeholder="请输入开户行账号" /></label><label>创建时间<input id="detailCreatedAt" readonly /></label>
-                  </div>
-                </div>
-                <div class="tax-detail-subsection"><h3>计税信息</h3>
-                  <div class="form-grid tax-detail-form-grid">
-                    <label>纳税人类型<select id="detailTaxpayerType"><option>一般纳税人</option><option>小规模纳税人</option></select></label>
-                    <label>计税方式<select id="detailTaxMethod"><option>一般计税</option><option>简易计税</option></select></label>
-                    <label>征收率<select id="detailLevyRate"><option>-</option><option>1%</option><option>3%</option><option>5%</option></select></label>
-                  </div>
-                </div>
               </div>
             </section>
             <section class="panel tax-detail-card" data-section="invoice-settings">
@@ -508,7 +528,7 @@
           <div class="page-back-row"><button class="default-btn" id="backEinvoiceBtn">返回</button></div>
           <div class="settings-head">
             <div>
-              <div class="breadcrumb">我的客户 / 集团商户一号 / 电子发票设置 / 品牌开票设置</div>
+              <div class="breadcrumb">我的客户</div>
               <h1 id="brandSettingsTitle">品牌开票设置</h1>
               <div class="head-tags">
                 <span id="brandCodeTag">品牌编号：700001</span>
@@ -518,7 +538,8 @@
 
           <div class="workspace-tabs brand-config-tabs" role="tablist" aria-label="品牌开票设置" data-tab-group="brandSettings">
             <button class="active" data-tab="brandStorePanel">门店开票设置</button>
-            <button data-tab="brandRulePanel">订单开票规则设置</button>
+            <button data-tab="brandRulePanel">商品开票匹配规则</button>
+            <button data-tab="defaultRulePanel">税号兜底开票项目配置</button>
             <button data-tab="brandPaymentPanel">不可开票支付方式</button>
             <button data-tab="brandEntryPanel">开票入口与申请页设置</button>
           </div>
@@ -555,7 +576,7 @@
               </section>
 
               <section class="tab-panel" id="brandRulePanel" data-tab-group="brandSettings">
-                <div class="panel">
+                <div class="panel rule-settings-panel">
                 <section class="rule-common-setting" id="itemNameSourceSetting">
                   <div class="setting-head compact">
                     <div>
@@ -577,15 +598,9 @@
                   </div>
                 </section>
 
-                <div class="workspace-tabs rule-sub-tabs" role="tablist" aria-label="订单开票规则设置" data-tab-group="brandRuleSettings">
-                  <button class="active" data-tab="categoryRulePanel">按商品大类匹配</button>
-                  <button data-tab="defaultRulePanel">税号兜底开票项目配置</button>
-                </div>
-
-                <section class="tab-panel active rule-sub-panel" id="categoryRulePanel" data-tab-group="brandRuleSettings">
+                <section class="rule-sub-panel" id="categoryRulePanel">
                   <div class="sub-panel-block">
                     <div class="section-heading">
-                      <h3 class="sub-title">按订单商品大类匹配税收分类编码</h3>
                       <p class="section-description">按品牌维度维护订单商品行的商品大类对应的开票税收分类编码</p>
                     </div>
                     <div class="query-filter">
@@ -633,8 +648,11 @@
                     </div>
                   </div>
                 </section>
+                </div>
+              </section>
 
-                <section class="tab-panel rule-sub-panel" id="defaultRulePanel" data-tab-group="brandRuleSettings">
+              <section class="tab-panel" id="defaultRulePanel" data-tab-group="brandSettings">
+                <div class="panel rule-settings-panel">
                   <div class="sub-panel-block">
                     <div class="default-tax-code-list" id="defaultTaxCodeListWrap">
                       <div class="section-heading">
@@ -681,7 +699,6 @@
                       </div>
                     </div>
                   </div>
-                </section>
                 </div>
               </section>
 
@@ -940,6 +957,140 @@
     <div class="field-help-popover table-help-floating hidden" id="specifiedTaxNoHelpPopover" role="tooltip">
       <strong>指定开票税号的作用</strong>
       <span>配置后，命中该商品大类规则的商品行使用指定税号开票；未配置时，使用订单对应门店关联的开票税号。</span>
+    </div>
+
+    <div class="modal-mask drawer-mask" id="editTaxNoBasicDrawer" aria-hidden="true">
+      <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="editTaxNoBasicTitle">
+        <div class="modal-head">
+          <h2 id="editTaxNoBasicTitle">编辑纳税人基本信息</h2>
+          <button class="icon-btn" type="button" data-close="editTaxNoBasicDrawer" aria-label="关闭">×</button>
+        </div>
+        <div class="modal-body">
+          <form class="drawer-form" id="taxNoBasicInfoEdit" novalidate>
+            <h3 class="drawer-section-title">企业登记信息</h3>
+            <label><span class="field-label">纳税人名称</span><input id="detailTaxpayerName" readonly /></label>
+            <label><span class="field-label">税号</span><input id="detailTaxNo" readonly /></label>
+            <label><span class="field-label">所在地区</span><select id="detailRegion"></select></label>
+            <label><span class="field-label">税务登记地址</span><input id="detailAddress" placeholder="请输入税务登记地址" /></label>
+            <label><span class="field-label">税务登记联系电话</span><input id="detailPhone" placeholder="请输入税务登记联系电话" /></label>
+            <label><span class="field-label">税务登记开户行</span><input id="detailBankName" placeholder="请输入税务登记开户行" /></label>
+            <label><span class="field-label">税务登记银行账号</span><input id="detailBankAccount" placeholder="请输入税务登记银行账号" /></label>
+            <label><span class="field-label">创建时间</span><input id="detailCreatedAt" readonly /></label>
+            <h3 class="drawer-section-title">计税信息</h3>
+            <label><span class="field-label">纳税人类型</span><select id="detailTaxpayerType"><option>一般纳税人</option><option>小规模纳税人</option></select></label>
+            <label><span class="field-label">计税方式</span><select id="detailTaxMethod"><option>一般计税</option><option>简易计税</option></select></label>
+            <label><span class="field-label">征收率</span><select id="detailLevyRate"><option>-</option><option>1%</option><option>3%</option><option>5%</option></select></label>
+          </form>
+        </div>
+        <div class="modal-foot">
+          <button class="default-btn" type="button" id="cancelTaxNoBasicBtn">取消</button>
+          <button class="primary-btn" type="button" id="saveTaxNoBasicBtn">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-mask drawer-mask" id="editBrandBasicDrawer" aria-hidden="true">
+      <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="editBrandBasicTitle">
+        <div class="modal-head">
+          <h2 id="editBrandBasicTitle">编辑品牌基础信息</h2>
+          <button class="icon-btn" type="button" data-close="editBrandBasicDrawer" aria-label="关闭">×</button>
+        </div>
+        <div class="modal-body">
+          <form class="create-brand-form" id="editBrandBasicForm" novalidate>
+            <label class="required-field"><span>品牌名称</span><input id="editBrandName" maxlength="40" placeholder="请输入品牌名称" /></label>
+            <label class="required-field"><span>所属行业</span><select id="editBrandIndustry"><option value="">请选择所属行业</option><option>餐饮服务</option><option>服饰零售</option><option>钟表零售</option><option>美妆零售</option><option>运动服饰</option><option>其他零售</option></select></label>
+            <label><span>品牌描述</span><textarea id="editBrandDescription" maxlength="200" rows="5" placeholder="请输入品牌描述"></textarea></label>
+            <div class="form-error hidden" id="editBrandBasicError" role="alert"></div>
+          </form>
+        </div>
+        <div class="modal-foot"><button class="default-btn" type="button" data-close="editBrandBasicDrawer">取消</button><button class="primary-btn" id="saveBrandBasicBtn" type="button">保存</button></div>
+      </div>
+    </div>
+
+    <div class="modal-mask drawer-mask" id="brandLogoSetDrawer" aria-hidden="true">
+      <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="brandLogoSetDrawerTitle">
+        <div class="modal-head">
+          <h2 id="brandLogoSetDrawerTitle">添加 Logo 方案</h2>
+          <button class="icon-btn" type="button" data-close="brandLogoSetDrawer" aria-label="关闭">×</button>
+        </div>
+        <div class="modal-body">
+          <form class="create-brand-form" id="brandLogoSetForm" novalidate>
+            <label class="required-field"><span>方案名称</span><input id="brandLogoSetName" maxlength="30" placeholder="例如：深色背景版" /></label>
+            <div class="create-brand-upload-field required-field">
+              <span>品牌标准 Logo</span>
+              <button class="brand-upload-box square" id="brandLogoSetStandardBtn" type="button"><span class="brand-upload-preview" id="brandLogoSetStandardPreview">＋<small>上传图片</small></span></button>
+              <input class="visually-hidden" id="brandLogoSetStandardFile" type="file" accept="image/png,image/jpeg" />
+              <p>图片格式必须为 png、jpg；不可以大于 4M；宽高比例 1:1</p>
+            </div>
+            <div class="create-brand-upload-field required-field">
+              <span>品牌横版 Logo</span>
+              <button class="brand-upload-box horizontal" id="brandLogoSetHorizontalBtn" type="button"><span class="brand-upload-preview" id="brandLogoSetHorizontalPreview">＋<small>上传图片</small></span></button>
+              <input class="visually-hidden" id="brandLogoSetHorizontalFile" type="file" accept="image/png,image/jpeg" />
+              <p>图片格式必须为 png、jpg；不可以大于 4M；宽高建议 320px × 64px</p>
+            </div>
+            <div class="form-error hidden" id="brandLogoSetError" role="alert"></div>
+          </form>
+        </div>
+        <div class="modal-foot"><button class="default-btn" type="button" data-close="brandLogoSetDrawer">取消</button><button class="primary-btn" id="saveBrandLogoSetBtn" type="button">保存</button></div>
+      </div>
+    </div>
+
+    <div class="modal-mask drawer-mask" id="createBrandDrawer" aria-hidden="true">
+      <div class="drawer create-brand-drawer" role="dialog" aria-modal="true" aria-labelledby="createBrandDrawerTitle">
+        <div class="modal-head">
+          <h2 id="createBrandDrawerTitle">新增品牌</h2>
+          <button class="icon-btn" type="button" data-close="createBrandDrawer" aria-label="关闭">×</button>
+        </div>
+        <div class="modal-body">
+          <form class="create-brand-form" id="createBrandForm" novalidate>
+            <label class="required-field">
+              <span>品牌名称</span>
+              <input id="newBrandName" maxlength="40" placeholder="请输入品牌名称" />
+            </label>
+            <label class="required-field">
+              <span>所属行业</span>
+              <select id="newBrandIndustry">
+                <option value="">请选择所属行业</option>
+                <option>餐饮服务</option>
+                <option>服饰零售</option>
+                <option>钟表零售</option>
+                <option>美妆零售</option>
+                <option>运动服饰</option>
+                <option>其他零售</option>
+              </select>
+            </label>
+            <label class="required-field">
+              <span>Logo 方案名称</span>
+              <input id="newBrandLogoSetName" maxlength="30" value="默认版本" placeholder="请输入 Logo 方案名称" />
+            </label>
+            <div class="create-brand-upload-field required-field">
+              <span>品牌标准 Logo</span>
+              <button class="brand-upload-box square" id="newBrandStandardLogoBtn" type="button">
+                <span class="brand-upload-preview" id="newBrandStandardLogoPreview">＋<small>上传图片</small></span>
+              </button>
+              <input class="visually-hidden" id="newBrandStandardLogoFile" type="file" accept="image/png,image/jpeg" />
+              <p>图片格式必须为 png、jpg；不可以大于 4M；宽高比例 1:1</p>
+            </div>
+            <div class="create-brand-upload-field required-field">
+              <span>品牌横版 Logo</span>
+              <button class="brand-upload-box horizontal" id="newBrandHorizontalLogoBtn" type="button">
+                <span class="brand-upload-preview" id="newBrandHorizontalLogoPreview">＋<small>上传图片</small></span>
+              </button>
+              <input class="visually-hidden" id="newBrandHorizontalLogoFile" type="file" accept="image/png,image/jpeg" />
+              <p>图片格式必须为 png、jpg；不可以大于 4M；宽高建议 320px × 64px</p>
+            </div>
+            <label>
+              <span>品牌描述</span>
+              <textarea id="newBrandDescription" maxlength="200" rows="5" placeholder="请输入品牌描述"></textarea>
+            </label>
+            <div class="form-error hidden" id="createBrandError" role="alert"></div>
+          </form>
+        </div>
+        <div class="modal-foot">
+          <button class="default-btn" type="button" data-close="createBrandDrawer">取消</button>
+          <button class="primary-btn" id="confirmCreateBrandBtn" type="button">确认</button>
+        </div>
+      </div>
     </div>
 
     <div class="modal-mask drawer-mask" id="ruleModal" aria-hidden="true">
@@ -1249,6 +1400,73 @@
           <section class="submission-section"><h4>开票人信息</h4><dl><div><dt>开票人姓名</dt><dd id="progressInvoicerName">-</dd></div><div><dt>税局登录手机号</dt><dd id="progressTaxPhone">-</dd></div><div><dt>税局密码</dt><dd>••••••••</dd></div><div><dt>开票人身份</dt><dd id="progressInvoicerRole">-</dd></div><div><dt>联系邮箱</dt><dd id="progressContactEmail">-</dd></div></dl></section>
         </div>
         <div class="modal-foot"><button class="default-btn" data-close="invoiceProgressDrawer">关闭</button></div>
+      </div>
+    </div>
+
+    <div class="modal-mask drawer-mask" id="leqiAccessDrawer" aria-hidden="true">
+      <div class="drawer leqi-access-drawer" role="dialog" aria-modal="true" aria-labelledby="leqiAccessDrawerTitle">
+        <div class="modal-head">
+          <div><h2 id="leqiAccessDrawerTitle">检测可接入公司</h2><p>检测集团公司是否具备乐企自用接入条件。</p></div>
+          <button class="icon-btn" data-close="leqiAccessDrawer">×</button>
+        </div>
+        <div class="modal-body leqi-access-body">
+          <div class="batch-stepper leqi-access-stepper" id="leqiAccessStepper">
+            <div class="leqi-access-step active" data-leqi-step="1"><span>1</span><strong>检测公司</strong></div><i></i>
+            <div class="leqi-access-step" data-leqi-step="2"><span>2</span><strong>选择接入公司</strong></div><i></i>
+            <div class="leqi-access-step" data-leqi-step="3"><span>3</span><strong>确认计税信息</strong></div><i></i>
+            <div class="leqi-access-step" data-leqi-step="4"><span>4</span><strong>执行结果</strong></div>
+          </div>
+
+          <section class="leqi-access-stage active" data-leqi-stage="1">
+            <div class="leqi-detecting-card">
+              <span class="leqi-spinner" aria-hidden="true"></span>
+              <h3>正在检测公司</h3>
+              <p id="leqiDetectProgressText">正在读取公司主档…</p>
+              <div class="leqi-progress-track"><span id="leqiDetectProgressBar"></span></div>
+              <p class="leqi-skip-note">已接入当前直连单位的公司会自动跳过，不调用企享云检测接口；当前开票通道不影响该接入关系。</p>
+            </div>
+          </section>
+
+          <section class="leqi-access-stage" data-leqi-stage="2">
+            <div class="leqi-result-summary" id="leqiDetectionSummary"></div>
+            <div class="leqi-result-notice"><strong>判定口径</strong><span>企享云 4.1.1 纳税人信息查询返回有效且可识别的“纳税人类型标签”，即判定为可接入。</span></div>
+            <div class="table-scroll leqi-result-table-wrap">
+              <table class="data-table wide leqi-result-table">
+                <thead><tr><th class="checkbox-col"><input type="checkbox" id="selectAllLeqiCandidates" aria-label="全选可接入公司" /></th><th>公司名称</th><th>税号</th><th>当前发票状态</th><th>当前通道</th><th>纳税人类型标签</th><th>检测结果</th><th>说明</th><th>操作</th></tr></thead>
+                <tbody id="leqiDetectionRows"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="leqi-access-stage" data-leqi-stage="3">
+            <div class="leqi-result-notice"><strong>确认计税信息</strong><span>已开通发票的公司优先复用现有配置；新开通公司根据纳税人类型标签预填。</span></div>
+            <div class="table-scroll leqi-tax-table-wrap">
+              <table class="data-table wide leqi-tax-table">
+                <thead><tr><th>公司名称</th><th>接入动作</th><th>纳税人类型</th><th>计税方式</th><th>征收率</th><th>校验结果</th></tr></thead>
+                <tbody id="leqiTaxConfirmRows"></tbody>
+              </table>
+            </div>
+            <p class="field-error" id="leqiTaxConfirmError"></p>
+          </section>
+
+          <section class="leqi-access-stage" data-leqi-stage="4">
+            <div class="leqi-execution-summary" id="leqiExecutionSummary"></div>
+            <div class="table-scroll">
+              <table class="data-table wide">
+                <thead><tr><th>公司名称</th><th>税号</th><th>执行动作</th><th>执行结果</th><th>原因 / 备注</th></tr></thead>
+                <tbody id="leqiExecutionRows"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+        <div class="modal-foot leqi-access-foot">
+          <button class="default-btn" data-close="leqiAccessDrawer" id="cancelLeqiAccessBtn">取消</button>
+          <button class="default-btn hidden" id="leqiAccessPrevBtn">上一步</button>
+          <button class="primary-btn hidden" id="leqiAccessNextBtn">下一步</button>
+          <button class="primary-btn hidden" id="executeLeqiAccessBtn">确认并执行</button>
+          <button class="default-btn hidden" id="retryLeqiFailuresBtn">仅重试失败项</button>
+          <button class="primary-btn hidden" id="finishLeqiAccessBtn">完成</button>
+        </div>
       </div>
     </div>
 
