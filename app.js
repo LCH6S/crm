@@ -21,6 +21,9 @@ const state = {
   customerBrandPage: 1,
   customerBrandPageSize: 6,
   currentBrandDetailCode: null,
+  newBrandLogos: { standard: "", horizontal: "" },
+  editingBrandLogoSetId: null,
+  brandLogoSetDraft: { standard: "", horizontal: "" },
   editingRuleIndex: null,
   editingPaymentIndex: null,
   editingDefaultTaxCodeIndex: null,
@@ -30,6 +33,8 @@ const state = {
   ruleBatchFileName: "",
   ruleBatchRows: [],
 };
+
+const BRAND_LOGO_SET_LIMIT = 7;
 
 const themeNames = {
   "black-gold": "黑金",
@@ -199,6 +204,53 @@ const brands = [
   },
 ];
 
+brands[0].logoSets = [
+  {
+    id: "700001-default",
+    name: "默认版本",
+    standardUrl: brands[0].logoUrl,
+    horizontalUrl: brands[0].logoHorizontalUrl,
+    isDefault: true,
+    createdAt: brands[0].createdAt,
+  },
+  {
+    id: "700001-dark",
+    name: "深色背景版",
+    standardUrl: createBrandLogo("W", "#111827"),
+    horizontalUrl: createBrandLogo("WOSAI Demo Shop", "#111827", true),
+    isDefault: false,
+    createdAt: "2026-07-22 14:20",
+  },
+];
+
+function ensureBrandLogoSets(brand) {
+  if (!Array.isArray(brand.logoSets) || !brand.logoSets.length) {
+    brand.logoSets = [{
+      id: `${brand.code}-default`,
+      name: "默认版本",
+      standardUrl: brand.logoUrl || "",
+      horizontalUrl: brand.logoHorizontalUrl || "",
+      isDefault: true,
+      createdAt: brand.createdAt || formatCreatedAt(),
+    }];
+  }
+  let defaultSet = brand.logoSets.find((item) => item.isDefault);
+  if (!defaultSet) {
+    defaultSet = brand.logoSets[0];
+    defaultSet.isDefault = true;
+  }
+  brand.logoSets.forEach((item) => {
+    if (item !== defaultSet) item.isDefault = false;
+  });
+  brand.logoUrl = defaultSet.standardUrl || "";
+  brand.logoHorizontalUrl = defaultSet.horizontalUrl || "";
+  return brand.logoSets;
+}
+
+function getCurrentBrandDetail() {
+  return brands.find((item) => item.code === state.currentBrandDetailCode) || null;
+}
+
 const stores = [
   {
     id: "store-1",
@@ -325,7 +377,7 @@ function createBrandLogo(label, background, wide = false) {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
-const detailDrawerViewIds = new Set(["companyDetailView", "brandDetailView", "brandStoreDetailView", "taxNoDetailView"]);
+const detailDrawerViewIds = new Set(["companyDetailView", "brandStoreDetailView", "taxNoDetailView"]);
 
 function syncDetailDrawerLayer() {
   const activeDrawer = document.querySelector(".detail-drawer-view.active");
@@ -429,6 +481,7 @@ function renderTaxNos() {
 }
 
 function renderBrands() {
+  brands.forEach(ensureBrandLogoSets);
   document.getElementById("brandRows").innerHTML = brands
     .map(
       (item) => `
@@ -448,7 +501,195 @@ function renderBrandLogo(url, alt, variant = "") {
   return `<img src="${url}" alt="${escapeHtml(alt)}" />`;
 }
 
+function setBrandBasicEditError(message = "") {
+  const error = document.getElementById("editBrandBasicError");
+  error.textContent = message;
+  error.classList.toggle("hidden", !message);
+}
+
+function openBrandBasicEditor() {
+  const brand = getCurrentBrandDetail();
+  if (!brand) return;
+  document.getElementById("editBrandName").value = brand.name;
+  document.getElementById("editBrandIndustry").value = brand.industry || "";
+  document.getElementById("editBrandDescription").value = brand.desc === "-" ? "" : brand.desc || "";
+  setBrandBasicEditError();
+  openModal("editBrandBasicDrawer");
+  window.setTimeout(() => document.getElementById("editBrandName").focus(), 0);
+}
+
+function saveBrandBasicInfo() {
+  const brand = getCurrentBrandDetail();
+  if (!brand) return;
+  const name = document.getElementById("editBrandName").value.trim();
+  const industry = document.getElementById("editBrandIndustry").value;
+  const desc = document.getElementById("editBrandDescription").value.trim();
+  if (!name || !industry) {
+    setBrandBasicEditError("请完整填写品牌名称和所属行业");
+    return;
+  }
+  if (brands.some((item) => item.code !== brand.code && item.name.toLowerCase() === name.toLowerCase())) {
+    setBrandBasicEditError("当前客户下已存在同名品牌");
+    return;
+  }
+  brand.name = name;
+  brand.industry = industry;
+  brand.desc = desc || "-";
+  closeModal("editBrandBasicDrawer");
+  openCustomerBrandDetail(brand.code);
+  renderCustomerBrands();
+  renderBrands();
+  showToast("品牌基础信息已保存");
+}
+
+function setBrandLogoSetError(message = "") {
+  const error = document.getElementById("brandLogoSetError");
+  error.textContent = message;
+  error.classList.toggle("hidden", !message);
+}
+
+function syncBrandLogoSetPreview(kind) {
+  const isStandard = kind === "standard";
+  const preview = document.getElementById(isStandard ? "brandLogoSetStandardPreview" : "brandLogoSetHorizontalPreview");
+  const url = state.brandLogoSetDraft[kind];
+  preview.innerHTML = url
+    ? `<img src="${url}" alt="${isStandard ? "品牌标准 Logo" : "品牌横版 Logo"} 预览" />`
+    : `＋<small>上传图片</small>`;
+}
+
+function renderBrandLogoSets() {
+  const brand = getCurrentBrandDetail();
+  if (!brand) return;
+  const logoSets = ensureBrandLogoSets(brand);
+  const addButton = document.getElementById("addBrandLogoSetBtn");
+  const countLabel = document.getElementById("brandLogoSetCount");
+  const reachedLimit = logoSets.length >= BRAND_LOGO_SET_LIMIT;
+  countLabel.textContent = `已设置 ${logoSets.length} / ${BRAND_LOGO_SET_LIMIT} 组`;
+  addButton.disabled = reachedLimit;
+  addButton.title = reachedLimit ? `最多可设置 ${BRAND_LOGO_SET_LIMIT} 组 Logo 方案（含默认版本）` : "";
+  addButton.setAttribute("aria-disabled", String(reachedLimit));
+  document.getElementById("brandLogoSetList").innerHTML = logoSets.map((item) => `
+    <article class="brand-logo-set-card">
+      <div class="brand-logo-set-head">
+        <div><h3>${escapeHtml(item.name)}</h3>${item.isDefault ? '<span class="status-tag enabled">默认方案</span>' : ""}</div>
+        <div class="brand-logo-set-actions">
+          <button class="link-btn" type="button" data-edit-brand-logo-set="${escapeHtml(item.id)}">编辑</button>
+          ${item.isDefault ? "" : `<button class="link-btn danger" type="button" data-delete-brand-logo-set="${escapeHtml(item.id)}">删除</button>`}
+        </div>
+      </div>
+      <div class="brand-logo-set-previews">
+        <div><span>标准 Logo</span><div class="brand-logo-stage square">${renderBrandLogo(item.standardUrl, `${brand.name} ${item.name} 标准 Logo`)}</div></div>
+        <div><span>横版 Logo</span><div class="brand-logo-stage horizontal">${renderBrandLogo(item.horizontalUrl, `${brand.name} ${item.name} 横版 Logo`, "horizontal")}</div></div>
+      </div>
+      <div class="brand-logo-set-meta">创建时间：${escapeHtml(item.createdAt || "-")}</div>
+    </article>`).join("");
+}
+
+function openBrandLogoSetEditor(logoSetId = null) {
+  const brand = getCurrentBrandDetail();
+  if (!brand) return;
+  const logoSets = ensureBrandLogoSets(brand);
+  if (!logoSetId && logoSets.length >= BRAND_LOGO_SET_LIMIT) {
+    showToast(`每个品牌最多可设置 ${BRAND_LOGO_SET_LIMIT} 组 Logo 方案（含默认版本）`);
+    return;
+  }
+  const logoSet = logoSetId ? logoSets.find((item) => item.id === logoSetId) : null;
+  state.editingBrandLogoSetId = logoSet?.id || null;
+  state.brandLogoSetDraft = {
+    standard: logoSet?.standardUrl || "",
+    horizontal: logoSet?.horizontalUrl || "",
+  };
+  document.getElementById("brandLogoSetDrawerTitle").textContent = logoSet ? "编辑 Logo 方案" : "添加 Logo 方案";
+  document.getElementById("brandLogoSetName").value = logoSet?.name || "";
+  document.getElementById("brandLogoSetStandardFile").value = "";
+  document.getElementById("brandLogoSetHorizontalFile").value = "";
+  syncBrandLogoSetPreview("standard");
+  syncBrandLogoSetPreview("horizontal");
+  setBrandLogoSetError();
+  openModal("brandLogoSetDrawer");
+  window.setTimeout(() => document.getElementById("brandLogoSetName").focus(), 0);
+}
+
+function handleBrandLogoSetFile(kind, file) {
+  if (!file) return;
+  if (!["image/png", "image/jpeg"].includes(file.type)) {
+    setBrandLogoSetError("Logo 仅支持 png、jpg 格式");
+    return;
+  }
+  if (file.size > 4 * 1024 * 1024) {
+    setBrandLogoSetError("Logo 文件不能大于 4M");
+    return;
+  }
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    state.brandLogoSetDraft[kind] = String(reader.result || "");
+    syncBrandLogoSetPreview(kind);
+    setBrandLogoSetError();
+  });
+  reader.readAsDataURL(file);
+}
+
+function saveBrandLogoSet() {
+  const brand = getCurrentBrandDetail();
+  if (!brand) return;
+  const logoSets = ensureBrandLogoSets(brand);
+  const name = document.getElementById("brandLogoSetName").value.trim();
+  if (!name || !state.brandLogoSetDraft.standard || !state.brandLogoSetDraft.horizontal) {
+    setBrandLogoSetError("请填写方案名称并上传标准 Logo 和横版 Logo");
+    return;
+  }
+  if (logoSets.some((item) => item.id !== state.editingBrandLogoSetId && item.name.toLowerCase() === name.toLowerCase())) {
+    setBrandLogoSetError("当前品牌下已存在同名 Logo 方案");
+    return;
+  }
+  const editingSet = logoSets.find((item) => item.id === state.editingBrandLogoSetId);
+  if (editingSet) {
+    editingSet.name = name;
+    editingSet.standardUrl = state.brandLogoSetDraft.standard;
+    editingSet.horizontalUrl = state.brandLogoSetDraft.horizontal;
+    if (editingSet.isDefault) {
+      brand.logoUrl = editingSet.standardUrl;
+      brand.logoHorizontalUrl = editingSet.horizontalUrl;
+    }
+  } else {
+    if (logoSets.length >= BRAND_LOGO_SET_LIMIT) {
+      setBrandLogoSetError(`每个品牌最多可设置 ${BRAND_LOGO_SET_LIMIT} 组 Logo 方案（含默认版本）`);
+      return;
+    }
+    logoSets.push({
+      id: `${brand.code}-${Date.now()}`,
+      name,
+      standardUrl: state.brandLogoSetDraft.standard,
+      horizontalUrl: state.brandLogoSetDraft.horizontal,
+      isDefault: false,
+      createdAt: formatCreatedAt(),
+    });
+  }
+  closeModal("brandLogoSetDrawer");
+  renderBrandLogoSets();
+  renderCustomerBrands();
+  renderBrands();
+  showToast(editingSet ? "Logo 方案已保存" : "Logo 方案已添加");
+}
+
+function deleteBrandLogoSet(logoSetId) {
+  const brand = getCurrentBrandDetail();
+  if (!brand) return;
+  const logoSets = ensureBrandLogoSets(brand);
+  const logoSet = logoSets.find((item) => item.id === logoSetId);
+  if (!logoSet) return;
+  if (logoSet.isDefault) {
+    showToast("默认方案不可删除");
+    return;
+  }
+  if (!window.confirm(`确认删除 Logo 方案“${logoSet.name}”？`)) return;
+  brand.logoSets = logoSets.filter((item) => item.id !== logoSetId);
+  renderBrandLogoSets();
+  showToast("Logo 方案已删除");
+}
+
 function renderCustomerBrands() {
+  brands.forEach(ensureBrandLogoSets);
   const total = brands.length;
   const totalPages = Math.max(1, Math.ceil(total / state.customerBrandPageSize));
   state.customerBrandPage = Math.min(state.customerBrandPage, totalPages);
@@ -490,6 +731,105 @@ function renderCustomerBrands() {
   document.getElementById("customerBrandPageSize").value = String(state.customerBrandPageSize);
 }
 
+function setCreateBrandError(message = "") {
+  const error = document.getElementById("createBrandError");
+  error.textContent = message;
+  error.classList.toggle("hidden", !message);
+}
+
+function syncNewBrandLogoPreview(kind) {
+  const isStandard = kind === "standard";
+  const preview = document.getElementById(isStandard ? "newBrandStandardLogoPreview" : "newBrandHorizontalLogoPreview");
+  const url = state.newBrandLogos[kind];
+  preview.innerHTML = url
+    ? `<img src="${url}" alt="${isStandard ? "品牌标准 Logo" : "品牌横版 Logo"} 预览" />`
+    : `＋<small>上传图片</small>`;
+}
+
+function resetCreateBrandForm() {
+  document.getElementById("createBrandForm").reset();
+  state.newBrandLogos = { standard: "", horizontal: "" };
+  syncNewBrandLogoPreview("standard");
+  syncNewBrandLogoPreview("horizontal");
+  setCreateBrandError();
+}
+
+function openCreateBrandDrawer() {
+  resetCreateBrandForm();
+  openModal("createBrandDrawer");
+  window.setTimeout(() => document.getElementById("newBrandName").focus(), 0);
+}
+
+function handleNewBrandLogoFile(kind, file) {
+  if (!file) return;
+  if (!['image/png', 'image/jpeg'].includes(file.type)) {
+    setCreateBrandError("Logo 仅支持 png、jpg 格式");
+    return;
+  }
+  if (file.size > 4 * 1024 * 1024) {
+    setCreateBrandError("Logo 文件不能大于 4M");
+    return;
+  }
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    state.newBrandLogos[kind] = String(reader.result || "");
+    syncNewBrandLogoPreview(kind);
+    setCreateBrandError();
+  });
+  reader.readAsDataURL(file);
+}
+
+function getNextBrandCode() {
+  const maxCode = brands.reduce((max, item) => Math.max(max, Number(item.code) || 0), 700000);
+  return String(maxCode + 1).padStart(6, "0");
+}
+
+function formatCreatedAt(date = new Date()) {
+  const parts = [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes()]
+    .map((value) => String(value).padStart(2, "0"));
+  return `${parts[0]}-${parts[1]}-${parts[2]} ${parts[3]}:${parts[4]}`;
+}
+
+function confirmCreateBrand() {
+  const name = document.getElementById("newBrandName").value.trim();
+  const industry = document.getElementById("newBrandIndustry").value;
+  const logoSetName = document.getElementById("newBrandLogoSetName").value.trim();
+  const desc = document.getElementById("newBrandDescription").value.trim();
+  if (!name || !industry || !logoSetName || !state.newBrandLogos.standard || !state.newBrandLogos.horizontal) {
+    setCreateBrandError("请完整填写品牌名称、所属行业、Logo 方案名称，并上传两种 Logo");
+    return;
+  }
+  if (brands.some((item) => item.name.toLowerCase() === name.toLowerCase())) {
+    setCreateBrandError("当前客户下已存在同名品牌");
+    return;
+  }
+  const code = getNextBrandCode();
+  const createdAt = formatCreatedAt();
+  brands.unshift({
+    name,
+    code,
+    desc: desc || "-",
+    industry,
+    groupName: "集团商户一号",
+    createdAt,
+    logoUrl: state.newBrandLogos.standard,
+    logoHorizontalUrl: state.newBrandLogos.horizontal,
+    logoSets: [{
+      id: `${code}-default`,
+      name: logoSetName,
+      standardUrl: state.newBrandLogos.standard,
+      horizontalUrl: state.newBrandLogos.horizontal,
+      isDefault: true,
+      createdAt,
+    }],
+  });
+  state.customerBrandPage = 1;
+  renderCustomerBrands();
+  renderBrands();
+  closeModal("createBrandDrawer");
+  showToast("品牌创建成功");
+}
+
 function activateCustomerTab(panelId) {
   document.querySelectorAll("[data-customer-tab]").forEach((item) => item.classList.toggle("active", item.dataset.customerTab === panelId));
   document.querySelectorAll(".customer-tab-panel").forEach((panel) => panel.classList.toggle("active", panel.id === panelId));
@@ -499,14 +839,16 @@ function openCustomerBrandDetail(brandCode) {
   const brand = brands.find((item) => item.code === brandCode);
   if (!brand) return;
   state.currentBrandDetailCode = brandCode;
+  ensureBrandLogoSets(brand);
   document.getElementById("brandDetailName").textContent = brand.name;
   document.getElementById("brandDetailCode").textContent = brand.code;
+  document.getElementById("brandBasicName").textContent = brand.name;
+  document.getElementById("brandBasicCode").textContent = brand.code;
   document.getElementById("brandDetailGroupName").textContent = brand.groupName || "-";
   document.getElementById("brandDetailIndustry").textContent = brand.industry || "-";
   document.getElementById("brandDetailCreatedAt").textContent = brand.createdAt || "-";
   document.getElementById("brandDetailDescription").textContent = brand.desc || "-";
-  document.getElementById("brandDetailStandardLogo").innerHTML = renderBrandLogo(brand.logoUrl, `${brand.name} 标准 Logo`);
-  document.getElementById("brandDetailHorizontalLogo").innerHTML = renderBrandLogo(brand.logoHorizontalUrl, `${brand.name} 横版 Logo`, "horizontal");
+  renderBrandLogoSets();
   setView("brandDetailView");
   window.BrandStoreFeature?.openBrand(brandCode);
 }
@@ -769,10 +1111,8 @@ function renderRuleBatchExecute() {
 function backToRuleSettings() {
   const meta = getRuleBatchMeta();
   openBrandSettings(state.currentBrandCode);
-  const topTab = document.querySelector('.workspace-tabs[data-tab-group="brandSettings"] button[data-tab="brandRulePanel"]');
-  const subTab = document.querySelector(`.workspace-tabs[data-tab-group="brandRuleSettings"] button[data-tab="${meta.returnPanel}"]`);
-  if (topTab) activateTab(topTab);
-  if (subTab) activateTab(subTab);
+  const targetTab = meta.returnPanel === "defaultRulePanel" ? "defaultRulePanel" : "brandRulePanel";
+  activatePanel(targetTab);
 }
 
 function renderPayments() {
@@ -968,7 +1308,7 @@ function openTaxNoDetail(id) {
   }
   state.currentTaxNoId = id;
   renderTaxNoDetail();
-  setTaxNoBasicInfoMode(false);
+  closeModal("editTaxNoBasicDrawer");
   setView("taxNoDetailView");
 }
 
@@ -980,9 +1320,9 @@ function renderTaxNoDetailItem(label, value) {
   return `<div class="tax-detail-read-item"><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(value || "-")}</dd></div>`;
 }
 
-function setTaxNoBasicInfoMode(isEditing) {
-  document.querySelectorAll('[data-view-for="tax-no-basic"]').forEach((element) => element.classList.toggle("hidden", isEditing));
-  document.querySelectorAll('[data-edit-for="tax-no-basic"]').forEach((element) => element.classList.toggle("hidden", !isEditing));
+function openTaxNoBasicEditor() {
+  renderTaxNoDetail();
+  openModal("editTaxNoBasicDrawer");
 }
 
 function renderTaxRegionOptions() {
@@ -1015,8 +1355,8 @@ function renderTaxNoDetail() {
   document.getElementById("taxNoDetailTitle").textContent = `${item.name}详情`;
   document.getElementById("taxNoDetailSummary").textContent = `税号：${item.taxNo}`;
   document.getElementById("taxNoRegistrationView").innerHTML = [
-    ["纳税人名称", item.name], ["税号", item.taxNo], ["所在地区", item.region], ["地址", item.address],
-    ["联系电话", item.phone], ["开户行名称", item.bankName], ["开户行账号", item.bankAccount], ["创建时间", item.createdAt],
+    ["纳税人名称", item.name], ["税号", item.taxNo], ["所在地区", item.region], ["税务登记地址", item.address],
+    ["税务登记联系电话", item.phone], ["税务登记开户行", item.bankName], ["税务登记银行账号", item.bankAccount], ["创建时间", item.createdAt],
   ].map(([label, value]) => renderTaxNoDetailItem(label, value)).join("");
   document.getElementById("taxNoTaxInfoView").innerHTML = [
     ["纳税人类型", item.taxpayerType], ["计税方式", item.taxMethod], ["征收率", item.levyRate],
@@ -1069,7 +1409,7 @@ function saveTaxNoBasicInfo() {
   item.levyRate = document.getElementById("detailLevyRate").value;
   renderTaxNos();
   renderTaxNoDetail();
-  setTaxNoBasicInfoMode(false);
+  closeModal("editTaxNoBasicDrawer");
   showToast("已更新纳税人基本信息");
 }
 
@@ -1384,13 +1724,9 @@ function updateAiContext() {
 
   if (activeView === "brandSettingsView") {
     const activeBrandTab = document.querySelector('.workspace-tabs[data-tab-group="brandSettings"] button.active')?.textContent.trim();
-    const activeRuleTab = document.querySelector('.workspace-tabs[data-tab-group="brandRuleSettings"] button.active')?.textContent.trim();
     scope = `当前范围：${brandName} 开票设置`;
     brandContext = `品牌：${brandName}`;
     tabContext = `页面：${activeBrandTab || "门店开票设置"}`;
-    if (activeBrandTab === "订单开票规则设置" && activeRuleTab) {
-      tabContext = `页面：订单开票规则设置 / ${activeRuleTab}`;
-    }
   }
 
   document.getElementById("aiScopeText").textContent = scope;
@@ -1421,8 +1757,7 @@ function activatePanel(panelId) {
 
 function focusBrandRulePanel(subPanelId) {
   setView("brandSettingsView");
-  activatePanel("brandRulePanel");
-  if (subPanelId) activatePanel(subPanelId);
+  activatePanel(subPanelId === "defaultRulePanel" ? "defaultRulePanel" : "brandRulePanel");
   updateAiContext();
 }
 
@@ -1613,10 +1948,10 @@ function bindEvents() {
   document.getElementById("backCustomerProductsBtn").addEventListener("click", () => setView("productsView"));
   document.getElementById("backEinvoiceBtn").addEventListener("click", () => setView("einvoiceView"));
   document.getElementById("backTaxNoListBtn").addEventListener("click", backToTaxNoList);
-  document.getElementById("editTaxNoBasicBtn").addEventListener("click", () => setTaxNoBasicInfoMode(true));
+  document.getElementById("editTaxNoBasicBtn").addEventListener("click", openTaxNoBasicEditor);
   document.getElementById("cancelTaxNoBasicBtn").addEventListener("click", () => {
     renderTaxNoDetail();
-    setTaxNoBasicInfoMode(false);
+    closeModal("editTaxNoBasicDrawer");
   });
   document.getElementById("saveTaxNoBasicBtn").addEventListener("click", saveTaxNoBasicInfo);
   document.getElementById("detailTaxpayerType").addEventListener("change", () => syncTaxCalculationFields({ taxpayerTypeChanged: true }));
@@ -1637,6 +1972,20 @@ function bindEvents() {
     state.customerBrandViewMode = "card";
     renderCustomerBrands();
   });
+  document.getElementById("createCustomerBrandBtn").addEventListener("click", openCreateBrandDrawer);
+  document.getElementById("confirmCreateBrandBtn").addEventListener("click", confirmCreateBrand);
+  document.getElementById("editBrandBasicBtn").addEventListener("click", openBrandBasicEditor);
+  document.getElementById("saveBrandBasicBtn").addEventListener("click", saveBrandBasicInfo);
+  document.getElementById("addBrandLogoSetBtn").addEventListener("click", () => openBrandLogoSetEditor());
+  document.getElementById("saveBrandLogoSetBtn").addEventListener("click", saveBrandLogoSet);
+  document.getElementById("brandLogoSetStandardBtn").addEventListener("click", () => document.getElementById("brandLogoSetStandardFile").click());
+  document.getElementById("brandLogoSetHorizontalBtn").addEventListener("click", () => document.getElementById("brandLogoSetHorizontalFile").click());
+  document.getElementById("brandLogoSetStandardFile").addEventListener("change", (event) => handleBrandLogoSetFile("standard", event.target.files?.[0]));
+  document.getElementById("brandLogoSetHorizontalFile").addEventListener("change", (event) => handleBrandLogoSetFile("horizontal", event.target.files?.[0]));
+  document.getElementById("newBrandStandardLogoBtn").addEventListener("click", () => document.getElementById("newBrandStandardLogoFile").click());
+  document.getElementById("newBrandHorizontalLogoBtn").addEventListener("click", () => document.getElementById("newBrandHorizontalLogoFile").click());
+  document.getElementById("newBrandStandardLogoFile").addEventListener("change", (event) => handleNewBrandLogoFile("standard", event.target.files?.[0]));
+  document.getElementById("newBrandHorizontalLogoFile").addEventListener("change", (event) => handleNewBrandLogoFile("horizontal", event.target.files?.[0]));
   document.getElementById("customerBrandPrevBtn").addEventListener("click", () => {
     if (state.customerBrandPage <= 1) return;
     state.customerBrandPage -= 1;
@@ -1687,6 +2036,10 @@ function bindEvents() {
     if (brandBtn) openBrandSettings(brandBtn.dataset.brandCode);
     const customerBrandDetailBtn = event.target.closest("[data-customer-brand-detail]");
     if (customerBrandDetailBtn) openCustomerBrandDetail(customerBrandDetailBtn.dataset.customerBrandDetail);
+    const editBrandLogoSetBtn = event.target.closest("[data-edit-brand-logo-set]");
+    if (editBrandLogoSetBtn) openBrandLogoSetEditor(editBrandLogoSetBtn.dataset.editBrandLogoSet);
+    const deleteBrandLogoSetBtn = event.target.closest("[data-delete-brand-logo-set]");
+    if (deleteBrandLogoSetBtn) deleteBrandLogoSet(deleteBrandLogoSetBtn.dataset.deleteBrandLogoSet);
     const taxDetailBtn = event.target.closest("[data-tax-detail]");
     if (taxDetailBtn) openTaxNoDetail(taxDetailBtn.dataset.taxDetail);
     const editRuleBtn = event.target.closest("[data-edit-rule]");
