@@ -152,7 +152,6 @@ function renderBrandStoreDetail() {
   const store = getCurrentBrandStore();
   const brand = getCurrentBrand();
   if (!store || !brand) return;
-  document.getElementById("brandStoreDetailBrandCrumb").textContent = brand.name;
   document.getElementById("brandStoreDetailName").textContent = store.name;
   document.getElementById("brandStoreDetailNoTag").textContent = `门店号：${store.storeNo}`;
   document.getElementById("brandStoreDetailIdTag").textContent = `门店ID：${store.id}`;
@@ -181,17 +180,19 @@ function returnToBrandStoreList() {
 function buildBrandStoreBatchRows() {
   const brandCode = brandStoreState.currentBrandCode;
   const inputs = [
-    { row: 1, name: "上海徐汇新店", storeNo: "SH-XH-009", province: "上海市", city: "上海市", district: "徐汇区", address: "示例路 9 号", phone: "021-60000009", remark: "批量创建" },
-    { row: 2, name: "杭州城西银泰店", storeNo: "HZ-CX-010", province: "浙江省", city: "杭州市", district: "西湖区", address: "示例路 10 号", phone: "0571-60000010", remark: "批量创建" },
-    { row: 3, name: "重复门店号示例", storeNo: "122", province: "上海市", city: "上海市", district: "长宁区", address: "示例路 12 号", phone: "021-60000012", remark: "用于演示唯一性校验" },
-    { row: 4, name: "批次内重复示例", storeNo: "SH-XH-009", province: "上海市", city: "上海市", district: "徐汇区", address: "示例路 19 号", phone: "021-60000019", remark: "用于演示批次内重复" },
+    { row: 1, name: "上海徐汇新店", storeNo: "SH-XH-009", type: "直营店", province: "上海市", city: "上海市", district: "徐汇区", address: "示例路 9 号", phone: "021-60000009", remark: "批量创建" },
+    { row: 2, name: "杭州城西银泰店", storeNo: "HZ-CX-010", type: "加盟店", province: "浙江省", city: "杭州市", district: "西湖区", address: "示例路 10 号", phone: "0571-60000010", remark: "批量创建" },
+    { row: 3, name: "重复门店号示例", storeNo: "122", type: "联营店", province: "上海市", city: "上海市", district: "长宁区", address: "示例路 12 号", phone: "021-60000012", remark: "用于演示唯一性校验" },
+    { row: 4, name: "批次内重复示例", storeNo: "SH-XH-009", type: "", province: "上海市", city: "上海市", district: "徐汇区", address: "示例路 19 号", phone: "021-60000019", remark: "用于演示门店类型必填" },
   ];
+  const allowedTypes = new Set(["直营店", "加盟店", "联营店"]);
   const seen = new Set(brandStores.filter((store) => store.brandCode === brandCode).map((store) => store.storeNo.toLowerCase()));
   return inputs.map((input) => {
     let check = "通过";
     let reason = "-";
     const normalized = input.storeNo.toLowerCase();
-    if (![input.name, input.storeNo, input.province, input.city, input.district, input.address].every(Boolean)) { check = "不通过"; reason = "门店名称、商家门店号、省、市、区和详细地址均为必填"; }
+    if (![input.name, input.storeNo, input.type, input.province, input.city, input.district, input.address].every(Boolean)) { check = "不通过"; reason = "门店名称、商家门店号、门店类型、省、市、区和详细地址均为必填"; }
+    else if (!allowedTypes.has(input.type)) { check = "不通过"; reason = "门店类型仅支持直营店、加盟店、联营店"; }
     else if (seen.has(normalized)) { check = "不通过"; reason = `门店号“${input.storeNo}”在当前品牌或本次文件中重复`; }
     else seen.add(normalized);
     return { ...input, brandCode, brandName: getCurrentBrand()?.name || "-", check, reason };
@@ -199,9 +200,10 @@ function buildBrandStoreBatchRows() {
 }
 
 function executeBrandStoreBatch(rows) {
+  const typeMap = { 直营店: "直营", 加盟店: "加盟", 联营店: "联营" };
   rows.filter((row) => row.check === "通过").forEach((row) => {
     if (brandStores.some((store) => store.brandCode === row.brandCode && store.storeNo.toLowerCase() === row.storeNo.toLowerCase())) return;
-    brandStores.unshift({ id: String(161247790000 + brandStores.length + row.row), brandCode: row.brandCode, name: row.name, storeNo: row.storeNo, type: "直营", region: [row.province, row.city, row.district].join(" / "), address: row.address, phone: row.phone || "-", remark: row.remark || "-", enabled: true, products: [], createdAt: "2026-07-21 20:45" });
+    brandStores.unshift({ id: String(161247790000 + brandStores.length + row.row), brandCode: row.brandCode, name: row.name, storeNo: row.storeNo, type: typeMap[row.type] || row.type, region: [row.province, row.city, row.district].join(" / "), address: row.address, phone: row.phone || "-", remark: row.remark || "-", enabled: true, products: [], createdAt: "2026-07-21 20:45" });
   });
   renderBrandStores();
 }
