@@ -10,20 +10,28 @@ const companyState = {
   batchRows: [],
   batchOrigin: "company",
   detailCompanyId: null,
-  detailTab: "companyStoresPanel",
+  detailTab: "companyBasicInfoPanel",
   branchKeyword: "",
   storeFilters: { brand: "", name: "", storeNo: "", storeId: "" },
   storePickerFilters: { brand: "", name: "", storeNo: "", storeId: "" },
   storePickerOnlyAvailable: false,
   selectedStoreIds: new Set(),
   removingStoreId: null,
+  leqiAccessStep: 1,
+  leqiDetectionRows: [],
+  leqiSelectedCompanyIds: new Set(),
+  leqiTaxDrafts: {},
+  leqiExecutionRows: [],
+  leqiDetectionTimer: null,
 };
 
 const companies = [
-  { id: "company-1", companyCode: "G-COMP-001", name: "中国石油天然气集团有限公司", uscc: "91110000100010433L", type: "Branch", parentId: "company-3", parent: "上海悦投贸易有限公司", invoiceStatus: "Unopened", createdAt: "2026-06-18 10:20", remark: "集团旗下零售业务公司" },
-  { id: "company-2", companyCode: "G-COMP-002", name: "上海烟草集团有限责任公司", uscc: "913100001322004345", type: "Branch", parentId: "company-3", parent: "上海悦投贸易有限公司", invoiceStatus: "Opening", createdAt: "2026-06-20 14:35", remark: "华东区域分公司", application: { taxpayerType: "一般纳税人", taxMethod: "一般计税", levyRate: "-", name: "张珺", phone: "13812346801", role: "办税员", email: "invoice@sqb-demo.cn", submittedAt: "2026-07-20 15:18" } },
-  { id: "company-3", companyCode: "G-COMP-003", name: "上海悦投贸易有限公司", uscc: "91310120MA1HRP974K", type: "Head", parentId: "", parent: "-", invoiceStatus: "Opened", createdAt: "2026-06-16 09:18", remark: "集团开票主体总公司", application: { taxpayerType: "一般纳税人", taxMethod: "简易计税", levyRate: "3%", name: "刘辰浩", phone: "13912345678", role: "财务负责人", email: "finance@sqb-demo.cn", submittedAt: "2026-07-19 10:05" } },
-  { id: "company-4", companyCode: "G-COMP-004", name: "华东示例商贸有限公司", uscc: "91310115MA1FAIL001", type: "Branch", parentId: "company-3", parent: "上海悦投贸易有限公司", invoiceStatus: "Failed", createdAt: "2026-06-22 16:42", remark: "待核对工商登记信息", failureReason: "企业工商信息与税务局备案不一致，请核实统一社会信用代码", application: { taxpayerType: "小规模纳税人", taxMethod: "简易计税", levyRate: "3%", name: "李玥", phone: "13912345678", role: "办税员", email: "invoice-fail@sqb-demo.cn", submittedAt: "2026-07-18 09:42" } },
+  { id: "company-1", companyCode: "G-COMP-001", name: "中国石油天然气集团有限公司", uscc: "91110000100010433L", type: "Branch", parentId: "company-3", parent: "上海悦投贸易有限公司", invoiceStatus: "Unopened", invoiceChannel: "-", taxpayerTypeLabel: "小规模纳税人", leqiDetectionScenario: "eligible", createdAt: "2026-06-18 10:20", remark: "集团旗下零售业务公司" },
+  { id: "company-2", companyCode: "G-COMP-002", name: "上海烟草集团有限责任公司", uscc: "913100001322004345", type: "Branch", parentId: "company-3", parent: "上海悦投贸易有限公司", invoiceStatus: "Opened", invoiceChannel: "企享云 RPA", taxpayerTypeLabel: "一般纳税人", leqiDetectionScenario: "eligible", failLeqiOnce: true, createdAt: "2026-06-20 14:35", remark: "华东区域分公司", application: { taxpayerType: "一般纳税人", taxMethod: "一般计税", levyRate: "-", name: "张珺", phone: "13812346801", role: "办税员", email: "invoice@sqb-demo.cn", submittedAt: "2026-07-20 15:18" } },
+  { id: "company-3", companyCode: "G-COMP-003", name: "上海悦投贸易有限公司", uscc: "91310120MA1HRP974K", type: "Head", parentId: "", parent: "-", invoiceStatus: "Opened", invoiceChannel: "企享云 RPA", taxpayerTypeLabel: "一般纳税人", leqiConnectedAt: "2026-07-18 16:40", createdAt: "2026-06-16 09:18", remark: "集团开票主体总公司", application: { taxpayerType: "一般纳税人", taxMethod: "简易计税", levyRate: "3%", name: "刘辰浩", phone: "13912345678", role: "财务负责人", email: "finance@sqb-demo.cn", submittedAt: "2026-07-19 10:05" } },
+  { id: "company-4", companyCode: "G-COMP-004", name: "华东示例商贸有限公司", uscc: "91310115MA1FAIL001", type: "Branch", parentId: "company-3", parent: "上海悦投贸易有限公司", invoiceStatus: "Failed", invoiceChannel: "-", taxpayerTypeLabel: "", leqiDetectionScenario: "unavailable", createdAt: "2026-06-22 16:42", remark: "待核对工商登记信息", failureReason: "企业工商信息与税务局备案不一致，请核实统一社会信用代码", application: { taxpayerType: "小规模纳税人", taxMethod: "简易计税", levyRate: "3%", name: "李玥", phone: "13912345678", role: "办税员", email: "invoice-fail@sqb-demo.cn", submittedAt: "2026-07-18 09:42" } },
+  { id: "company-5", companyCode: "G-COMP-005", name: "华北示例供应链有限公司", uscc: "91110108MA1ERROR01", type: "Branch", parentId: "company-3", parent: "上海悦投贸易有限公司", invoiceStatus: "Unopened", invoiceChannel: "-", taxpayerTypeLabel: "", leqiDetectionScenario: "error", createdAt: "2026-06-25 09:30", remark: "北方区域公司" },
+  { id: "company-6", companyCode: "G-COMP-006", name: "华南示例零售有限公司", uscc: "91440300MA1OPENING1", type: "Branch", parentId: "company-3", parent: "上海悦投贸易有限公司", invoiceStatus: "Opening", invoiceChannel: "企享云 RPA", taxpayerTypeLabel: "一般纳税人", leqiDetectionScenario: "unavailable", createdAt: "2026-06-26 13:15", remark: "发票功能开通中" },
 ];
 
 const groupStores = [
@@ -118,6 +126,287 @@ function renderCompanies() {
     : '<tr><td colspan="6" class="empty-cell">未找到匹配的公司</td></tr>';
 }
 
+const recognizedTaxpayerTypeLabels = new Set(["一般纳税人", "小规模纳税人"]);
+
+function isLeqiConnectedCompany(company) {
+  return Boolean(company.leqiConnectedAt);
+}
+
+function renderLeqiConnectedCompanies() {
+  const connected = companies.filter(isLeqiConnectedCompany);
+  const rows = document.getElementById("leqiConnectedCompanyRows");
+  if (!rows) return;
+  rows.innerHTML = connected.length
+    ? connected.map((company) => `<tr>
+        <td>${companySafe(company.name)}</td>
+        <td>${companySafe(company.uscc)}</td>
+        <td>${companySafe(company.taxpayerTypeLabel || company.application?.taxpayerType || "-")}</td>
+        <td>${companySafe(company.leqiConnectedAt || "-")}</td>
+      </tr>`).join("")
+    : '<tr><td colspan="4" class="empty-cell">暂无已接入的使用单位</td></tr>';
+}
+
+function getLeqiDetectionResult(company) {
+  if (isLeqiConnectedCompany(company)) return null;
+  if (company.leqiDetectionScenario === "error") {
+    return { companyId: company.id, status: "error", action: "-", message: "企享云接口超时，请重试" };
+  }
+  if (company.invoiceStatus === "Opening") {
+    return { companyId: company.id, status: "unavailable", action: "-", message: "发票功能正在开通中，请完成后再检测" };
+  }
+  if (!recognizedTaxpayerTypeLabels.has(company.taxpayerTypeLabel)) {
+    return { companyId: company.id, status: "unavailable", action: "-", message: "未返回有效的纳税人类型标签" };
+  }
+  const canSwitch = company.invoiceStatus === "Opened";
+  return {
+    companyId: company.id,
+    status: canSwitch ? "switch" : "open",
+    action: canSwitch ? "切换至乐企自用" : "开通乐企自用",
+    message: canSwitch ? `可从${company.invoiceChannel || "当前通道"}切换` : "可开通发票并接入乐企自用",
+  };
+}
+
+function leqiResultMeta(status) {
+  const map = {
+    open: { label: "可开通", className: "green" },
+    switch: { label: "可切换", className: "blue" },
+    unavailable: { label: "暂不可接入", className: "gray" },
+    error: { label: "检测异常", className: "red" },
+  };
+  return map[status] || map.unavailable;
+}
+
+function setLeqiAccessStep(step) {
+  companyState.leqiAccessStep = step;
+  document.querySelectorAll(".leqi-access-step").forEach((item) => {
+    const itemStep = Number(item.dataset.leqiStep);
+    item.classList.toggle("active", itemStep === step);
+    item.classList.toggle("completed", itemStep < step);
+  });
+  document.querySelectorAll(".leqi-access-stage").forEach((item) => item.classList.toggle("active", Number(item.dataset.leqiStage) === step));
+  const prev = document.getElementById("leqiAccessPrevBtn");
+  const next = document.getElementById("leqiAccessNextBtn");
+  const execute = document.getElementById("executeLeqiAccessBtn");
+  const retry = document.getElementById("retryLeqiFailuresBtn");
+  const finish = document.getElementById("finishLeqiAccessBtn");
+  const cancel = document.getElementById("cancelLeqiAccessBtn");
+  prev.classList.toggle("hidden", step !== 3);
+  next.classList.toggle("hidden", step !== 2);
+  execute.classList.toggle("hidden", step !== 3);
+  retry.classList.add("hidden");
+  finish.classList.toggle("hidden", step !== 4);
+  cancel.classList.toggle("hidden", step === 4);
+  if (step === 2) next.disabled = companyState.leqiSelectedCompanyIds.size === 0;
+}
+
+function buildLeqiTaxDraft(company, detection) {
+  const existing = company.application;
+  const taxpayerType = existing?.taxpayerType || company.taxpayerTypeLabel;
+  const taxMethod = existing?.taxMethod || (taxpayerType === "小规模纳税人" ? "简易计税" : "一般计税");
+  return {
+    companyId: company.id,
+    action: detection.action,
+    taxpayerType,
+    taxMethod,
+    levyRate: existing?.levyRate || (taxMethod === "简易计税" ? "" : "-"),
+  };
+}
+
+function renderLeqiDetectionSummary() {
+  const counts = companyState.leqiDetectionRows.reduce((result, row) => {
+    result[row.status] = (result[row.status] || 0) + 1;
+    return result;
+  }, {});
+  const skipped = companies.filter(isLeqiConnectedCompany).length;
+  document.getElementById("leqiDetectionSummary").innerHTML = `
+    <div><span>可开通</span><strong class="success-text">${counts.open || 0}</strong></div>
+    <div><span>可切换</span><strong>${counts.switch || 0}</strong></div>
+    <div><span>暂不可接入</span><strong>${counts.unavailable || 0}</strong></div>
+    <div><span>检测异常</span><strong class="danger-text">${counts.error || 0}</strong></div>
+    <div><span>已接入，跳过检测</span><strong>${skipped}</strong></div>`;
+}
+
+function renderLeqiDetectionRows() {
+  renderLeqiDetectionSummary();
+  document.getElementById("leqiDetectionRows").innerHTML = companyState.leqiDetectionRows.map((row) => {
+    const company = companies.find((item) => item.id === row.companyId);
+    const meta = leqiResultMeta(row.status);
+    const selectable = row.status === "open" || row.status === "switch";
+    const checked = companyState.leqiSelectedCompanyIds.has(row.companyId);
+    return `<tr>
+      <td class="checkbox-col"><input type="checkbox" data-leqi-select="${row.companyId}" ${selectable ? "" : "disabled"} ${checked ? "checked" : ""} aria-label="选择${companySafe(company.name)}" /></td>
+      <td>${companySafe(company.name)}</td><td>${companySafe(company.uscc)}</td>
+      <td>${companySafe(companyStatusMeta(company.invoiceStatus).label)}</td><td>${companySafe(company.invoiceChannel || "-")}</td>
+      <td>${companySafe(company.taxpayerTypeLabel || "-")}</td><td><span class="tag ${meta.className}">${meta.label}</span></td>
+      <td>${companySafe(row.message)}</td>
+      <td>${row.status === "error" ? `<button class="link-btn" data-leqi-retry="${row.companyId}">重试</button>` : "-"}</td>
+    </tr>`;
+  }).join("");
+  const selectableIds = companyState.leqiDetectionRows.filter((row) => row.status === "open" || row.status === "switch").map((row) => row.companyId);
+  const selectAll = document.getElementById("selectAllLeqiCandidates");
+  selectAll.checked = selectableIds.length > 0 && selectableIds.every((id) => companyState.leqiSelectedCompanyIds.has(id));
+  selectAll.indeterminate = companyState.leqiSelectedCompanyIds.size > 0 && !selectAll.checked;
+  document.getElementById("leqiAccessNextBtn").disabled = companyState.leqiSelectedCompanyIds.size === 0;
+}
+
+function finishLeqiDetection() {
+  companyState.leqiDetectionRows = companies.map(getLeqiDetectionResult).filter(Boolean);
+  companyState.leqiSelectedCompanyIds = new Set(
+    companyState.leqiDetectionRows.filter((row) => row.status === "open" || row.status === "switch").map((row) => row.companyId),
+  );
+  companyState.leqiTaxDrafts = {};
+  companyState.leqiDetectionRows.forEach((row) => {
+    if (companyState.leqiSelectedCompanyIds.has(row.companyId)) {
+      const company = companies.find((item) => item.id === row.companyId);
+      companyState.leqiTaxDrafts[row.companyId] = buildLeqiTaxDraft(company, row);
+    }
+  });
+  renderLeqiDetectionRows();
+  setLeqiAccessStep(2);
+}
+
+function startLeqiDetection() {
+  window.clearTimeout(companyState.leqiDetectionTimer);
+  companyState.leqiDetectionRows = [];
+  companyState.leqiSelectedCompanyIds = new Set();
+  companyState.leqiExecutionRows = [];
+  setLeqiAccessStep(1);
+  openModal("leqiAccessDrawer");
+  const progress = document.getElementById("leqiDetectProgressBar");
+  const copy = document.getElementById("leqiDetectProgressText");
+  progress.style.width = "18%";
+  copy.textContent = "正在读取公司主档…";
+  companyState.leqiDetectionTimer = window.setTimeout(() => {
+    progress.style.width = "64%";
+    copy.textContent = "正在查询企享云纳税人信息…";
+    companyState.leqiDetectionTimer = window.setTimeout(() => {
+      progress.style.width = "100%";
+      copy.textContent = "检测完成，正在整理结果…";
+      companyState.leqiDetectionTimer = window.setTimeout(finishLeqiDetection, 260);
+    }, 420);
+  }, 360);
+}
+
+function retryLeqiDetection(companyId) {
+  const company = companies.find((item) => item.id === companyId);
+  if (!company) return;
+  company.leqiDetectionScenario = "eligible";
+  company.taxpayerTypeLabel = "一般纳税人";
+  const index = companyState.leqiDetectionRows.findIndex((row) => row.companyId === companyId);
+  const nextRow = getLeqiDetectionResult(company);
+  if (index >= 0 && nextRow) companyState.leqiDetectionRows[index] = nextRow;
+  if (nextRow && (nextRow.status === "open" || nextRow.status === "switch")) {
+    companyState.leqiSelectedCompanyIds.add(companyId);
+    companyState.leqiTaxDrafts[companyId] = buildLeqiTaxDraft(company, nextRow);
+  }
+  renderLeqiDetectionRows();
+  showToast("重试成功，该公司可接入乐企自用");
+}
+
+function renderLeqiTaxConfirmRows() {
+  const drafts = [...companyState.leqiSelectedCompanyIds].map((id) => companyState.leqiTaxDrafts[id]).filter(Boolean);
+  document.getElementById("leqiTaxConfirmRows").innerHTML = drafts.map((draft) => {
+    const company = companies.find((item) => item.id === draft.companyId);
+    const smallScale = draft.taxpayerType === "小规模纳税人";
+    const simple = draft.taxMethod === "简易计税";
+    const valid = !simple || ["1%", "3%", "5%"].includes(draft.levyRate);
+    return `<tr>
+      <td><strong>${companySafe(company.name)}</strong><small class="table-cell-note">${companySafe(company.uscc)}</small></td>
+      <td>${companySafe(draft.action)}</td>
+      <td><select data-leqi-tax-field="taxpayerType" data-company-id="${company.id}" disabled><option>${companySafe(draft.taxpayerType)}</option></select></td>
+      <td><select data-leqi-tax-field="taxMethod" data-company-id="${company.id}" ${smallScale ? "disabled" : ""}><option ${simple ? "" : "selected"}>一般计税</option><option ${simple ? "selected" : ""}>简易计税</option></select></td>
+      <td><select data-leqi-tax-field="levyRate" data-company-id="${company.id}" ${simple ? "" : "disabled"}><option value="">请选择</option>${["1%", "3%", "5%"].map((rate) => `<option ${draft.levyRate === rate ? "selected" : ""}>${rate}</option>`).join("")}</select></td>
+      <td>${valid ? '<span class="tag green">通过</span>' : '<span class="tag red">请选择征收率</span>'}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("leqiTaxConfirmError").textContent = "";
+}
+
+function validateLeqiTaxDrafts() {
+  const invalid = [...companyState.leqiSelectedCompanyIds].map((id) => companyState.leqiTaxDrafts[id]).some((draft) => draft.taxMethod === "简易计税" && !["1%", "3%", "5%"].includes(draft.levyRate));
+  document.getElementById("leqiTaxConfirmError").textContent = invalid ? "请先为所有简易计税公司选择征收率" : "";
+  return !invalid;
+}
+
+function syncTaxNoAfterLeqiAccess(company, draft) {
+  let taxpayer = taxNos.find((item) => item.taxNo === company.uscc);
+  if (!taxpayer) {
+    taxpayer = {
+      id: `tax-${Date.now()}-${company.id}`,
+      name: company.name,
+      taxNo: company.uscc,
+      region: "上海市",
+      address: "-",
+      phone: "-",
+      bankName: "-",
+      bankAccount: "-",
+      createdAt: "2026-07-22 14:30",
+      invoiceUsers: [],
+      enabled: true,
+      reason: "-",
+    };
+    taxNos.push(taxpayer);
+  }
+  taxpayer.taxpayerType = draft.taxpayerType;
+  taxpayer.taxMethod = draft.taxMethod;
+  taxpayer.levyRate = draft.taxMethod === "一般计税" ? "-" : draft.levyRate;
+  taxpayer.invoiceChannel = "乐企自用";
+  taxpayer.enabled = true;
+}
+
+function executeLeqiAccess({ retryFailures = false } = {}) {
+  const targetIds = retryFailures
+    ? companyState.leqiExecutionRows.filter((row) => row.result === "failed").map((row) => row.companyId)
+    : [...companyState.leqiSelectedCompanyIds];
+  const results = targetIds.map((companyId) => {
+    const company = companies.find((item) => item.id === companyId);
+    const draft = companyState.leqiTaxDrafts[companyId];
+    if (!retryFailures && company.failLeqiOnce) {
+      company.failLeqiOnce = false;
+      return { companyId, action: draft.action, result: "failed", reason: "通道切换任务暂时失败，可直接重试" };
+    }
+    company.invoiceStatus = "Opened";
+    company.invoiceChannel = "乐企自用";
+    company.taxpayerTypeLabel = draft.taxpayerType;
+    company.leqiConnectedAt = "2026-07-22 14:30";
+    company.application = {
+      ...(company.application || {}),
+      taxpayerType: draft.taxpayerType,
+      taxMethod: draft.taxMethod,
+      levyRate: draft.taxMethod === "一般计税" ? "-" : draft.levyRate,
+      submittedAt: "2026-07-22 14:30",
+    };
+    syncTaxNoAfterLeqiAccess(company, draft);
+    return { companyId, action: draft.action, result: "success", reason: "-" };
+  });
+  if (retryFailures) {
+    const untouched = companyState.leqiExecutionRows.filter((row) => row.result !== "failed");
+    companyState.leqiExecutionRows = [...untouched, ...results];
+  } else {
+    companyState.leqiExecutionRows = results;
+  }
+  renderCompanies();
+  renderTaxNos();
+  renderLeqiConnectedCompanies();
+  renderLeqiExecutionRows();
+  setLeqiAccessStep(4);
+  const hasFailure = companyState.leqiExecutionRows.some((row) => row.result === "failed");
+  document.getElementById("retryLeqiFailuresBtn").classList.toggle("hidden", !hasFailure);
+}
+
+function renderLeqiExecutionRows() {
+  const successCount = companyState.leqiExecutionRows.filter((row) => row.result === "success").length;
+  const failureCount = companyState.leqiExecutionRows.length - successCount;
+  document.getElementById("leqiExecutionSummary").innerHTML = `
+    <div><span>执行成功</span><strong class="success-text">${successCount}</strong></div>
+    <div><span>执行失败</span><strong class="danger-text">${failureCount}</strong></div>
+    <p>${failureCount ? "成功项已生效，失败项可单独重试。" : "所选公司已完成乐企自用接入。"}</p>`;
+  document.getElementById("leqiExecutionRows").innerHTML = companyState.leqiExecutionRows.map((row) => {
+    const company = companies.find((item) => item.id === row.companyId);
+    return `<tr><td>${companySafe(company.name)}</td><td>${companySafe(company.uscc)}</td><td>${companySafe(row.action)}</td><td>${row.result === "success" ? '<span class="tag green">成功</span>' : '<span class="tag red">失败</span>'}</td><td>${companySafe(row.reason)}</td></tr>`;
+  }).join("");
+}
+
 function getCompanyDetail() {
   return companies.find((company) => company.id === companyState.detailCompanyId);
 }
@@ -134,7 +423,7 @@ function companyFunctionDescription(company) {
 
 function activateCompanyDetailTab(panelId) {
   const company = getCompanyDetail();
-  if (!company || (panelId === "companyBranchesPanel" && company.type !== "Head")) panelId = "companyStoresPanel";
+  if (!company || (panelId === "companyBranchesPanel" && company.type !== "Head")) panelId = "companyBasicInfoPanel";
   companyState.detailTab = panelId;
   document.querySelectorAll("[data-company-detail-tab]").forEach((button) => button.classList.toggle("active", button.dataset.companyDetailTab === panelId));
   document.querySelectorAll(".company-detail-tab-panel").forEach((panel) => panel.classList.toggle("active", panel.id === panelId));
@@ -254,6 +543,10 @@ function renderCompanyDetail() {
   document.getElementById("companyDetailName").textContent = company.name;
   document.getElementById("companyDetailUscc").textContent = company.uscc;
   document.getElementById("companyDetailCode").textContent = company.companyCode || company.id;
+  document.getElementById("companyBasicName").textContent = company.name;
+  document.getElementById("companyBasicType").textContent = company.type === "Head" ? "总公司" : "分公司";
+  document.getElementById("companyBasicUscc").textContent = company.uscc;
+  document.getElementById("companyBasicCode").textContent = company.companyCode || company.id;
   document.getElementById("companyDetailParent").textContent = company.parent || "-";
   document.getElementById("companyDetailCreatedAt").textContent = company.createdAt || "-";
   document.getElementById("companyDetailRemark").textContent = company.remark || "-";
@@ -268,7 +561,7 @@ function renderCompanyDetail() {
   failureNode.textContent = company.failureReason || "-";
   failureNode.classList.toggle("hidden", company.invoiceStatus !== "Failed");
   document.getElementById("companyBranchesTab").classList.toggle("hidden", company.type !== "Head");
-  if (company.type !== "Head" && companyState.detailTab === "companyBranchesPanel") companyState.detailTab = "companyStoresPanel";
+  if (company.type !== "Head" && companyState.detailTab === "companyBranchesPanel") companyState.detailTab = "companyBasicInfoPanel";
   activateCompanyDetailTab(companyState.detailTab);
   renderCompanyBranches();
   renderCompanyStores();
@@ -277,7 +570,7 @@ function renderCompanyDetail() {
 function openCompanyDetail(companyId) {
   if (!companies.some((company) => company.id === companyId)) return;
   companyState.detailCompanyId = companyId;
-  companyState.detailTab = "companyStoresPanel";
+  companyState.detailTab = "companyBasicInfoPanel";
   companyState.branchKeyword = "";
   companyState.storeFilters = { brand: "", name: "", storeNo: "", storeId: "" };
   document.getElementById("companyBranchKeyword").value = "";
@@ -612,7 +905,7 @@ function getBatchModeMeta(mode = companyState.batchMode) {
     create: { title: "批量创建公司", executeLabel: "执行导入", hint: "请下载批量创建公司模板，按模板填写公司信息。", fileName: "集团公司批量创建.xlsx", taskType: "CREATE_COMPANY", fields: ["客户编号", "统一社会信用代码", "是否分公司", "上级公司统一社会信用代码", "公司名称", "备注"] },
     invoice: { title: "批量开通发票申请", executeLabel: "执行申请", hint: "请下载批量开通发票模板，按模板填写税务主体和开票人信息。", fileName: "集团公司批量开通发票.xlsx", taskType: "ENABLE_INVOICE", fields: ["集团编号", "统一社会信用代码", "纳税人类型", "计税方式", "征收率", "开票人姓名", "税局登录手机号", "税局密码", "开票人身份"] },
     store: { title: "批量关联门店", executeLabel: "执行关联", hint: "请下载批量关联门店模板，按模板填写公司和门店信息。", fileName: "集团公司批量关联门店.xlsx", taskType: "ASSOCIATE_STORE", fields: ["客户编号", "统一社会信用代码", "公司名称（选填）", "门店编号", "门店名称（选填）"] },
-    brandStoreCreate: { title: "批量创建门店", executeLabel: "执行导入", hint: "请下载批量创建门店模板，按模板填写当前品牌下的门店信息。门店号需在品牌下唯一。", fileName: "批量创建门店.xlsx", taskType: "CREATE_BRAND_STORE", fields: ["门店名称（必填）", "商家门店号（必填）", "所在省（必填）", "所在市（必填）", "所在区（必填）", "详细地址（必填）", "联系电话", "备注"] },
+    brandStoreCreate: { title: "批量创建门店", executeLabel: "执行导入", hint: "请下载批量创建门店模板，逐行填写门店类型。门店号需在品牌下唯一。", fileName: "批量创建门店.xlsx", taskType: "CREATE_BRAND_STORE", fields: ["门店名称（必填）", "商家门店号（必填）", "门店类型（必填）", "所在省（必填）", "所在市（必填）", "所在区（必填）", "详细地址（必填）", "联系电话", "备注"] },
   };
   return map[mode] || map.create;
 }
@@ -665,7 +958,7 @@ function renderBatchCheck() {
   document.getElementById("batchCheckFail").textContent = companyState.batchRows.filter((item) => item.check !== "通过").length;
   document.getElementById("executeBatchBtn").textContent = getBatchModeMeta().executeLabel;
   document.getElementById("batchCheckHead").innerHTML = isBrandStoreCreate
-    ? "<tr><th>行号</th><th>门店名称</th><th>商家门店号</th><th>所在省</th><th>所在市</th><th>所在区</th><th>详细地址</th><th>检查结果</th><th>原因</th></tr>"
+    ? "<tr><th>行号</th><th>门店名称</th><th>商家门店号</th><th>门店类型</th><th>所在省</th><th>所在市</th><th>所在区</th><th>详细地址</th><th>检查结果</th><th>原因</th></tr>"
     : isCreate
     ? "<tr><th>行号</th><th>统一社会信用代码</th><th>公司名称</th><th>是否分公司</th><th>上级公司</th><th>检查结果</th><th>原因</th></tr>"
     : isStore
@@ -673,7 +966,7 @@ function renderBatchCheck() {
       : "<tr><th>行号</th><th>统一社会信用代码</th><th>公司名称</th><th>当前状态</th><th>纳税人类型</th><th>计税方式</th><th>征收率</th><th>开票人姓名</th><th>手机号</th><th>身份</th><th>检查结果</th><th>原因</th></tr>";
   document.getElementById("batchCheckRows").innerHTML = companyState.batchRows.map((item) => {
     const result = `<span class="result-badge ${item.check === "通过" ? "result-success" : "result-fail"}">${item.check}</span>`;
-    if (isBrandStoreCreate) return `<tr><td>${item.row}</td><td>${companySafe(item.name)}</td><td>${companySafe(item.storeNo)}</td><td>${companySafe(item.province)}</td><td>${companySafe(item.city)}</td><td>${companySafe(item.district)}</td><td>${companySafe(item.address)}</td><td>${result}</td><td>${companySafe(item.reason)}</td></tr>`;
+    if (isBrandStoreCreate) return `<tr><td>${item.row}</td><td>${companySafe(item.name)}</td><td>${companySafe(item.storeNo)}</td><td>${companySafe(item.type)}</td><td>${companySafe(item.province)}</td><td>${companySafe(item.city)}</td><td>${companySafe(item.district)}</td><td>${companySafe(item.address)}</td><td>${result}</td><td>${companySafe(item.reason)}</td></tr>`;
     if (isCreate) return `<tr><td>${item.row}</td><td>${item.uscc}</td><td>${item.name}</td><td>${item.type === "分公司" ? "是" : "否"}</td><td>${item.parent}</td><td>${result}</td><td>${item.reason}</td></tr>`;
     if (isStore) return `<tr><td>${item.row}</td><td>${item.clientNo}</td><td>${item.uscc}</td><td>${companySafe(item.resolvedCompanyName)}</td><td>${companySafe(item.storeNo)}</td><td>${companySafe(item.resolvedStoreName)}</td><td>${result}</td><td>${companySafe(item.reason)}</td></tr>`;
     return `<tr><td>${item.row}</td><td>${item.uscc}</td><td>${item.name}</td><td>${item.current}</td><td>${item.taxpayerType}</td><td>${item.taxMethod}</td><td>${item.levyRate === "-" ? "不适用" : item.levyRate}</td><td>${item.invoicer}</td><td>${item.phone}</td><td>${item.role}</td><td>${result}</td><td>${item.reason}</td></tr>`;
@@ -750,7 +1043,7 @@ function renderBatchExecute() {
   const isInvoice = companyState.batchMode === "invoice";
   const isBrandStoreCreate = companyState.batchMode === "brandStoreCreate";
   document.getElementById("batchExecuteHead").innerHTML = isBrandStoreCreate
-    ? "<tr><th>行号</th><th>门店名称</th><th>商家门店号</th><th>所在省</th><th>所在市</th><th>所在区</th><th>执行结果</th><th>原因/备注</th></tr>"
+    ? "<tr><th>行号</th><th>门店名称</th><th>商家门店号</th><th>门店类型</th><th>所在省</th><th>所在市</th><th>所在区</th><th>执行结果</th><th>原因/备注</th></tr>"
     : isStore
     ? "<tr><th>行号</th><th>客户编号</th><th>统一社会信用代码</th><th>公司名称</th><th>门店编号</th><th>门店名称</th><th>执行结果</th><th>原因/备注</th></tr>"
     : isInvoice
@@ -758,7 +1051,7 @@ function renderBatchExecute() {
       : "<tr><th>行号</th><th>统一社会信用代码</th><th>公司名称</th><th>执行结果</th><th>原因/备注</th></tr>";
   document.getElementById("batchExecuteRows").innerHTML = companyState.batchRows.map((item) => {
     const result = `<span class="result-badge ${item.execute === "成功" ? "result-success" : "status-unopened"}">${item.execute}</span>`;
-    if (isBrandStoreCreate) return `<tr><td>${item.row}</td><td>${companySafe(item.name)}</td><td>${companySafe(item.storeNo)}</td><td>${companySafe(item.province)}</td><td>${companySafe(item.city)}</td><td>${companySafe(item.district)}</td><td>${result}</td><td>${companySafe(item.executeReason)}</td></tr>`;
+    if (isBrandStoreCreate) return `<tr><td>${item.row}</td><td>${companySafe(item.name)}</td><td>${companySafe(item.storeNo)}</td><td>${companySafe(item.type)}</td><td>${companySafe(item.province)}</td><td>${companySafe(item.city)}</td><td>${companySafe(item.district)}</td><td>${result}</td><td>${companySafe(item.executeReason)}</td></tr>`;
     if (isStore) return `<tr><td>${item.row}</td><td>${item.clientNo}</td><td>${item.uscc}</td><td>${companySafe(item.resolvedCompanyName)}</td><td>${companySafe(item.storeNo)}</td><td>${companySafe(item.resolvedStoreName)}</td><td>${result}</td><td>${companySafe(item.executeReason)}</td></tr>`;
     if (isInvoice) return `<tr><td>${item.row}</td><td>${item.uscc}</td><td>${item.name}</td><td>${item.taxpayerType}</td><td>${item.taxMethod}</td><td>${item.levyRate === "-" ? "不适用" : item.levyRate}</td><td>${result}</td><td>${item.executeReason}</td></tr>`;
     return `<tr><td>${item.row}</td><td>${item.uscc}</td><td>${item.name}</td><td>${result}</td><td>${item.executeReason}</td></tr>`;
@@ -817,14 +1110,14 @@ function openBatchTaskDetail(taskId) {
   const isInvoice = task.type === "ENABLE_INVOICE";
   const isBrandStoreCreate = task.type === "CREATE_BRAND_STORE";
   document.getElementById("batchRecordDetailHead").innerHTML = isBrandStoreCreate
-    ? "<tr><th>行号</th><th>门店名称</th><th>商家门店号</th><th>所在省</th><th>所在市</th><th>所在区</th><th>检查结果</th><th>执行结果</th><th>原因/备注</th></tr>"
+    ? "<tr><th>行号</th><th>门店名称</th><th>商家门店号</th><th>门店类型</th><th>所在省</th><th>所在市</th><th>所在区</th><th>检查结果</th><th>执行结果</th><th>原因/备注</th></tr>"
     : isStore
     ? "<tr><th>行号</th><th>客户编号</th><th>统一社会信用代码</th><th>公司名称</th><th>门店编号</th><th>门店名称</th><th>检查结果</th><th>执行结果</th><th>原因/备注</th></tr>"
     : isInvoice
       ? "<tr><th>行号</th><th>统一社会信用代码</th><th>公司名称</th><th>纳税人类型</th><th>计税方式</th><th>征收率</th><th>检查结果</th><th>执行结果</th><th>原因/备注</th></tr>"
       : "<tr><th>行号</th><th>统一社会信用代码</th><th>公司名称</th><th>检查结果</th><th>执行结果</th><th>原因/备注</th></tr>";
   document.getElementById("batchRecordDetailRows").innerHTML = task.rows.map((row) => {
-    if (isBrandStoreCreate) return `<tr><td>${row.row}</td><td>${companySafe(row.name)}</td><td>${companySafe(row.storeNo)}</td><td>${companySafe(row.province)}</td><td>${companySafe(row.city)}</td><td>${companySafe(row.district)}</td><td>${row.check}</td><td>${row.execute}</td><td>${companySafe(row.reason)}</td></tr>`;
+    if (isBrandStoreCreate) return `<tr><td>${row.row}</td><td>${companySafe(row.name)}</td><td>${companySafe(row.storeNo)}</td><td>${companySafe(row.type)}</td><td>${companySafe(row.province)}</td><td>${companySafe(row.city)}</td><td>${companySafe(row.district)}</td><td>${row.check}</td><td>${row.execute}</td><td>${companySafe(row.reason)}</td></tr>`;
     if (isStore) return `<tr><td>${row.row}</td><td>${row.clientNo}</td><td>${row.uscc}</td><td>${companySafe(row.companyName)}</td><td>${companySafe(row.storeNo)}</td><td>${companySafe(row.storeName)}</td><td>${row.check}</td><td>${row.execute}</td><td>${companySafe(row.reason)}</td></tr>`;
     if (isInvoice) return `<tr><td>${row.row}</td><td>${row.uscc}</td><td>${row.name}</td><td>${row.taxpayerType || "-"}</td><td>${row.taxMethod || "-"}</td><td>${row.levyRate === "-" ? "不适用" : (row.levyRate || "-")}</td><td>${row.check}</td><td>${row.execute}</td><td>${row.reason}</td></tr>`;
     return `<tr><td>${row.row}</td><td>${row.uscc}</td><td>${row.name}</td><td>${row.check}</td><td>${row.execute}</td><td>${row.reason}</td></tr>`;
@@ -842,6 +1135,30 @@ function bindCompanyEvents() {
   document.getElementById("batchEnableInvoiceBtn").addEventListener("click", () => openBatch("invoice"));
   document.getElementById("batchAssociateStoresBtn").addEventListener("click", () => openBatch("store"));
   document.getElementById("batchOperationRecordsBtn").addEventListener("click", () => { companyState.batchOrigin = "company"; openBatchRecords(); });
+  document.getElementById("detectLeqiCompaniesBtn").addEventListener("click", startLeqiDetection);
+  document.getElementById("selectAllLeqiCandidates").addEventListener("change", (event) => {
+    companyState.leqiDetectionRows.filter((row) => row.status === "open" || row.status === "switch").forEach((row) => {
+      if (event.target.checked) companyState.leqiSelectedCompanyIds.add(row.companyId);
+      else companyState.leqiSelectedCompanyIds.delete(row.companyId);
+    });
+    renderLeqiDetectionRows();
+  });
+  document.getElementById("leqiAccessNextBtn").addEventListener("click", () => {
+    companyState.leqiSelectedCompanyIds.forEach((companyId) => {
+      if (companyState.leqiTaxDrafts[companyId]) return;
+      const company = companies.find((item) => item.id === companyId);
+      const detection = companyState.leqiDetectionRows.find((row) => row.companyId === companyId);
+      companyState.leqiTaxDrafts[companyId] = buildLeqiTaxDraft(company, detection);
+    });
+    renderLeqiTaxConfirmRows();
+    setLeqiAccessStep(3);
+  });
+  document.getElementById("leqiAccessPrevBtn").addEventListener("click", () => setLeqiAccessStep(2));
+  document.getElementById("executeLeqiAccessBtn").addEventListener("click", () => {
+    if (validateLeqiTaxDrafts()) executeLeqiAccess();
+  });
+  document.getElementById("retryLeqiFailuresBtn").addEventListener("click", () => executeLeqiAccess({ retryFailures: true }));
+  document.getElementById("finishLeqiAccessBtn").addEventListener("click", () => closeModal("leqiAccessDrawer"));
   document.getElementById("companySearchBtn").addEventListener("click", () => {
     companyState.keyword = document.getElementById("companyKeyword").value.trim();
     companyState.type = document.getElementById("companyTypeFilter").value;
@@ -924,6 +1241,8 @@ function bindCompanyEvents() {
   document.getElementById("resetBatchRecordsBtn").addEventListener("click", () => { ["batchRecordTypeFilter", "batchRecordStatusFilter", "batchRecordKeyword"].forEach((id) => { document.getElementById(id).value = ""; }); renderBatchRecords(); });
   document.getElementById("backToBatchRecordListBtn").addEventListener("click", () => { document.getElementById("batchRecordListPanel").classList.remove("hidden"); document.getElementById("batchRecordDetailPanel").classList.add("hidden"); });
   document.body.addEventListener("click", (event) => {
+    const retryLeqi = event.target.closest("[data-leqi-retry]");
+    if (retryLeqi) retryLeqiDetection(retryLeqi.dataset.leqiRetry);
     const removeStore = event.target.closest("[data-company-store-remove]");
     if (removeStore) openRemoveStoreConfirm(removeStore.dataset.companyStoreRemove);
     const companyDetail = event.target.closest("[data-company-detail]");
@@ -937,6 +1256,25 @@ function bindCompanyEvents() {
     if (detail) openBatchTaskDetail(detail.dataset.batchTaskDetail);
   });
   document.body.addEventListener("change", (event) => {
+    const leqiSelection = event.target.closest("[data-leqi-select]");
+    if (leqiSelection && !leqiSelection.disabled) {
+      const companyId = leqiSelection.dataset.leqiSelect;
+      if (leqiSelection.checked) companyState.leqiSelectedCompanyIds.add(companyId);
+      else companyState.leqiSelectedCompanyIds.delete(companyId);
+      renderLeqiDetectionRows();
+      return;
+    }
+    const leqiTaxField = event.target.closest("[data-leqi-tax-field]");
+    if (leqiTaxField) {
+      const draft = companyState.leqiTaxDrafts[leqiTaxField.dataset.companyId];
+      if (!draft) return;
+      draft[leqiTaxField.dataset.leqiTaxField] = leqiTaxField.value;
+      if (leqiTaxField.dataset.leqiTaxField === "taxMethod") {
+        draft.levyRate = leqiTaxField.value === "一般计税" ? "-" : "";
+      }
+      renderLeqiTaxConfirmRows();
+      return;
+    }
     const storeCheckbox = event.target.closest("[data-store-picker-id]");
     if (!storeCheckbox || storeCheckbox.disabled) return;
     if (storeCheckbox.checked) companyState.selectedStoreIds.add(storeCheckbox.dataset.storePickerId);
@@ -946,4 +1284,5 @@ function bindCompanyEvents() {
 }
 
 renderCompanies();
+renderLeqiConnectedCompanies();
 bindCompanyEvents();
