@@ -5264,3 +5264,61 @@ label,
     grid-template-columns: 1fr;
   }
 }
+
+/* Entity summaries: keep the entity name and its primary identifier together. */
+.entity-summary-title-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  min-width: 0;
+}
+
+.entity-summary-title-line h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.customer-summary-main.entity-summary-title-line {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.customer-summary-main.entity-summary-title-line .summary-tags,
+.brand-store-detail-head .entity-summary-title-line .head-tags {
+  flex: 0 0 auto;
+}
+
+.company-detail-summary .entity-summary-title-line,
+.brand-detail-summary .entity-summary-title-line {
+  width: 100%;
+}
+
+.company-detail-summary .company-detail-identifiers,
+.brand-detail-summary .brand-detail-number {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.batch-operation-records-panel {
+  padding: 24px;
+}
+
+.batch-operation-records-panel .batch-record-filter {
+  margin-bottom: 20px;
+}
+
+.batch-operation-records-panel .batch-record-list,
+.batch-operation-records-panel .batch-record-detail {
+  padding: 0;
+}
+
+@media (max-width: 900px) {
+  .entity-summary-title-line {
+    align-items: flex-start;
+  }
+}

@@ -1084,10 +1084,9 @@ function renderBatchRecords() {
 }
 
 function openBatchRecords() {
-  document.getElementById("batchRecordListPanel").classList.remove("hidden");
-  document.getElementById("batchRecordDetailPanel").classList.add("hidden");
   renderBatchRecords();
-  setView("batchRecordsView");
+  setView("productsView");
+  document.getElementById("batchOperationRecordsTab").click();
 }
 
 function returnFromCompanyBatch() {
@@ -1101,8 +1100,6 @@ function returnFromCompanyBatch() {
 function openBatchTaskDetail(taskId) {
   const task = batchTasks.find((item) => item.id === taskId);
   if (!task) return;
-  document.getElementById("batchRecordListPanel").classList.add("hidden");
-  document.getElementById("batchRecordDetailPanel").classList.remove("hidden");
   document.getElementById("batchRecordDetailTitle").textContent = `${batchTaskTypeLabel(task.type)}任务详情`;
   document.getElementById("batchRecordDetailMeta").textContent = `${task.id} · ${task.fileName} · ${task.operator} · ${task.createdAt}`;
   document.getElementById("batchRecordDetailStats").innerHTML = `<span>总行数：<strong>${task.total}</strong></span><span class="success-text">通过：<strong>${task.pass}</strong></span><span class="danger-text">不通过：<strong>${task.fail}</strong></span><span class="success-text">执行成功：<strong>${task.success}</strong></span><span>跳过：<strong>${task.skipped}</strong></span>`;
@@ -1122,6 +1119,7 @@ function openBatchTaskDetail(taskId) {
     if (isInvoice) return `<tr><td>${row.row}</td><td>${row.uscc}</td><td>${row.name}</td><td>${row.taxpayerType || "-"}</td><td>${row.taxMethod || "-"}</td><td>${row.levyRate === "-" ? "不适用" : (row.levyRate || "-")}</td><td>${row.check}</td><td>${row.execute}</td><td>${row.reason}</td></tr>`;
     return `<tr><td>${row.row}</td><td>${row.uscc}</td><td>${row.name}</td><td>${row.check}</td><td>${row.execute}</td><td>${row.reason}</td></tr>`;
   }).join("");
+  setView("batchRecordDetailView");
 }
 
 function bindCompanyEvents() {
@@ -1134,7 +1132,9 @@ function bindCompanyEvents() {
   document.getElementById("batchCreateCompanyBtn").addEventListener("click", () => openBatch("create"));
   document.getElementById("batchEnableInvoiceBtn").addEventListener("click", () => openBatch("invoice"));
   document.getElementById("batchAssociateStoresBtn").addEventListener("click", () => openBatch("store"));
-  document.getElementById("batchOperationRecordsBtn").addEventListener("click", () => { companyState.batchOrigin = "company"; openBatchRecords(); });
+  document.getElementById("batchOperationRecordsTab").addEventListener("click", () => {
+    renderBatchRecords();
+  });
   document.getElementById("detectLeqiCompaniesBtn").addEventListener("click", startLeqiDetection);
   document.getElementById("selectAllLeqiCandidates").addEventListener("change", (event) => {
     companyState.leqiDetectionRows.filter((row) => row.status === "open" || row.status === "switch").forEach((row) => {
@@ -1229,7 +1229,6 @@ function bindCompanyEvents() {
   document.getElementById("batchBackToCompanyBtn").addEventListener("click", returnFromCompanyBatch);
   document.getElementById("batchRecordsShortcutBtn").addEventListener("click", openBatchRecords);
   document.getElementById("viewBatchRecordsBtn").addEventListener("click", openBatchRecords);
-  document.getElementById("backFromBatchRecordsBtn").addEventListener("click", returnFromCompanyBatch);
   document.getElementById("downloadBatchTemplateBtn").addEventListener("click", () => showToast(`已下载${getBatchModeMeta().title}模板`));
   document.getElementById("selectBatchFileBtn").addEventListener("click", selectMockBatchFile);
   document.getElementById("removeBatchFileBtn").addEventListener("click", () => { companyState.batchFileName = ""; companyState.batchRows = []; document.getElementById("batchFileCard").classList.add("hidden"); document.getElementById("startBatchCheckBtn").disabled = true; });
@@ -1239,7 +1238,7 @@ function bindCompanyEvents() {
   document.getElementById("restartBatchBtn").addEventListener("click", () => openBatch(companyState.batchMode));
   document.getElementById("searchBatchRecordsBtn").addEventListener("click", renderBatchRecords);
   document.getElementById("resetBatchRecordsBtn").addEventListener("click", () => { ["batchRecordTypeFilter", "batchRecordStatusFilter", "batchRecordKeyword"].forEach((id) => { document.getElementById(id).value = ""; }); renderBatchRecords(); });
-  document.getElementById("backToBatchRecordListBtn").addEventListener("click", () => { document.getElementById("batchRecordListPanel").classList.remove("hidden"); document.getElementById("batchRecordDetailPanel").classList.add("hidden"); });
+  document.getElementById("backToBatchRecordListBtn").addEventListener("click", openBatchRecords);
   document.body.addEventListener("click", (event) => {
     const retryLeqi = event.target.closest("[data-leqi-retry]");
     if (retryLeqi) retryLeqiDetection(retryLeqi.dataset.leqiRetry);

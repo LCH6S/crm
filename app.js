@@ -793,10 +793,9 @@ function formatCreatedAt(date = new Date()) {
 function confirmCreateBrand() {
   const name = document.getElementById("newBrandName").value.trim();
   const industry = document.getElementById("newBrandIndustry").value;
-  const logoSetName = document.getElementById("newBrandLogoSetName").value.trim();
   const desc = document.getElementById("newBrandDescription").value.trim();
-  if (!name || !industry || !logoSetName || !state.newBrandLogos.standard || !state.newBrandLogos.horizontal) {
-    setCreateBrandError("请完整填写品牌名称、所属行业、Logo 方案名称，并上传两种 Logo");
+  if (!name || !industry || !state.newBrandLogos.standard || !state.newBrandLogos.horizontal) {
+    setCreateBrandError("请完整填写品牌名称、所属行业，并上传两种 Logo");
     return;
   }
   if (brands.some((item) => item.name.toLowerCase() === name.toLowerCase())) {
@@ -816,7 +815,7 @@ function confirmCreateBrand() {
     logoHorizontalUrl: state.newBrandLogos.horizontal,
     logoSets: [{
       id: `${code}-default`,
-      name: logoSetName,
+      name: "默认版本",
       standardUrl: state.newBrandLogos.standard,
       horizontalUrl: state.newBrandLogos.horizontal,
       isDefault: true,
