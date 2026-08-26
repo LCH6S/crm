@@ -1,0 +1,148 @@
+digraph CompanyInvoiceOpeningCN {
+  graph [
+    rankdir=TB,
+    bgcolor="#F7F8FA",
+    pad="0.35",
+    nodesep="0.36",
+    ranksep="0.58",
+    splines=ortho,
+    compound=true,
+    newrank=true,
+    ordering=out,
+    fontname="PingFang SC",
+    label="中国大陆公司发票功能开通流程（PRD V0.2）",
+    labelloc="t",
+    fontsize=22
+  ];
+
+  node [
+    shape=box,
+    style="rounded,filled",
+    fillcolor="#FFFFFF",
+    color="#B5BBC5",
+    fontname="PingFang SC",
+    fontsize=11,
+    margin="0.16,0.10"
+  ];
+
+  edge [
+    color="#697386",
+    fontname="PingFang SC",
+    fontsize=9,
+    arrowsize=0.7
+  ];
+
+  entry [label="我的客户 > 客户详情 > 公司列表\n公司详情 > 电子发票 > 开通", shape=oval, fillcolor="#E8F3FF", color="#3491FA"];
+  scope [label="本期仅中国大陆公司\n支付主体 / 商户号只读，不在本流程创建", shape=note, fillcolor="#FFF7E8", color="#FF9A2E"];
+  companyState [label="公司发票状态？", shape=diamond, fillcolor="#FFFFFF"];
+  resume [label="恢复原开通申请\n不创建平行申请", fillcolor="#E8F3FF", color="#3491FA"];
+  precheck [label="前置校验通过？\n客户已开通电子发票产品\n公司主档与统一社会信用代码完整", shape=diamond, fillcolor="#FFFFFF"];
+  blocked [label="阻止继续\n展示业务原因或重试入口", fillcolor="#FFECE8", color="#F53F3F"];
+  tax [label="1. 填写公共税务信息\n纳税人类型 / 计税方式 / 征收率\n地址 / 电话 / 开户行 / 账号选填", fillcolor="#FFFFFF"];
+  mode [label="2. 选择开票模式\nRPA / 乐企联用 / 乐企自用\n默认不选，首次开通三选一", shape=diamond, fillcolor="#FFFFFF"];
+
+  entry -> companyState;
+  scope -> entry [style=dashed, arrowhead=none, constraint=false];
+  companyState -> resume [xlabel="开通中"];
+  companyState -> precheck [xlabel="待开通"];
+  companyState -> resume [xlabel="已存在有效申请", style=dashed];
+  companyState -> taxpayerDetail [xlabel="已开通"];
+  precheck -> blocked [xlabel="否"];
+  precheck -> tax [xlabel="是"];
+  tax -> mode;
+  resume -> taxpayerDetail;
+
+  subgraph clusterRpa {
+    label="RPA 模式";
+    color="#FF9A2E";
+    fillcolor="#FFF7E8";
+    style="rounded,filled";
+    fontname="PingFang SC";
+
+    rpaInfo [label="3. 填写开票人信息\n姓名 / 税局手机号 / 密码\n开票人身份 / 联系邮箱选填"];
+    rpaReview [label="4. 确认提交\n创建或续办唯一申请"];
+    rpaResult [label="结果页：开通申请已提交\n销售端：开通中", fillcolor="#E8F3FF", color="#3491FA"];
+    rpaOps [label="运营联系客户\n待验证登录 > 待确认信息", fillcolor="#FFF7E8", color="#FF9A2E"];
+    rpaDecision [label="运营结果？", shape=diamond, fillcolor="#FFFFFF"];
+    rpaFail [label="RPA 模式：开通失败\n展示运营填写的失败原因", fillcolor="#FFECE8", color="#F53F3F"];
+    rpaResubmit [label="重新提交\n前两步锁定，返回第 3 步", fillcolor="#FFF7E8", color="#FF9A2E"];
+
+    rpaInfo -> rpaReview -> rpaResult -> rpaOps -> rpaDecision;
+    rpaDecision -> rpaFail [xlabel="驳回"];
+    rpaFail -> rpaResubmit;
+    rpaResubmit -> rpaInfo [style=dashed];
+  }
+
+  subgraph clusterJoint {
+    label="乐企联用模式";
+    color="#722ED1";
+    fillcolor="#F5F0FF";
+    style="rounded,filled";
+    fontname="PingFang SC";
+
+    merchant [label="3. 手动输入收钱吧商户号\n查询已有支付主体与商户资源"];
+    merchantCheck [label="商户存在、营业执照与公司一致\n且存在在用微信商户号？", shape=diamond, fillcolor="#FFFFFF"];
+    chooseWechat [label="复选一个或多个微信商户号\n每个号码为独立开通记录"];
+    abilities [label="选择至少一项能力\n基础开票 / 不动产租赁 / 成品油"];
+    jointReview [label="4. 确认提交\n按微信商户号分别创建腾讯邀请"];
+    jointResult [label="结果页：开通申请已提交\n展示邀请码 / 二维码 / 链接", fillcolor="#E8F3FF", color="#3491FA"];
+    channel [label="腾讯渠道子状态？", shape=diamond, fillcolor="#FFFFFF"];
+    channelFail [label="展示业务异常原因\n申请和模式仍为开通中", fillcolor="#FFF7E8", color="#FF9A2E"];
+    sameInvite [label="客户处理异常后重扫原码\n保留原邀请并继续轮询"];
+    jointReady [label="至少一个微信商户号开通成功\n首个成功且可用号自动设为默认", fillcolor="#E8FFEA", color="#00B42A"];
+
+    merchant -> merchantCheck;
+    merchantCheck -> chooseWechat [xlabel="是"];
+    merchantCheck -> blocked [xlabel="否"];
+    chooseWechat -> abilities -> jointReview -> jointResult -> channel;
+    channel -> channel [xlabel="待授权 / 开通中", style=dashed];
+    channel -> channelFail [xlabel="失败"];
+    channelFail -> sameInvite -> channel [xlabel="同一邀请", style=dashed];
+    channel -> jointReady [xlabel="成功"];
+  }
+
+  subgraph clusterSelf {
+    label="乐企自用模式";
+    color="#00B42A";
+    fillcolor="#F0FFF2";
+    style="rounded,filled";
+    fontname="PingFang SC";
+
+    customerConfig [label="所属客户已完成\n乐企自用九项参数配置？", shape=diamond, fillcolor="#FFFFFF"];
+    guide [label="3. 引导客户先完成使用单位接入\n点击“已完成接入”"];
+    query [label="企享云自动查询\n当前公司税号使用单位"];
+    found [label="查询到使用单位？", shape=diamond, fillcolor="#FFFFFF"];
+    retry [label="查询不到：阻止\n接口异常：保留页面并重试", fillcolor="#FFF7E8", color="#FF9A2E"];
+    selfReview [label="4. 确认提交"];
+    selfActivate [label="创建或复用税务主体角色\n启用发票功能并设置乐企自用为当前模式", fillcolor="#E8FFEA", color="#00B42A"];
+    selfResult [label="结果页：开通已成功", fillcolor="#E8FFEA", color="#00B42A"];
+
+    customerConfig -> guide [xlabel="是"];
+    customerConfig -> blocked [xlabel="否"];
+    guide -> query -> found;
+    found -> retry [xlabel="否 / 异常"];
+    retry -> query [xlabel="重试", style=dashed];
+    found -> selfReview [xlabel="是"];
+    selfReview -> selfActivate -> selfResult;
+  }
+
+  mode -> customerConfig [xlabel="乐企自用"];
+  mode -> merchant [xlabel="乐企联用"];
+  mode -> rpaInfo [xlabel="RPA"];
+
+  activate [label="创建或复用税务主体角色\n首次成功：启用发票功能并设置当前模式", fillcolor="#E8FFEA", color="#00B42A"];
+  taxpayerDetail [label="公司详情 > 电子发票\n税务主体基本信息 + 三种模式状态", fillcolor="#FFFFFF", color="#3491FA"];
+  after [label="开通后管理\n追加其他模式 / 切换当前模式 / 启用或禁用发票功能", shape=oval, fillcolor="#E8F3FF", color="#3491FA"];
+
+  rpaResult -> taxpayerDetail [xlabel="返回查看开通中", style=dashed];
+  rpaDecision -> activate [xlabel="成功"];
+  rpaFail -> taxpayerDetail [xlabel="展示 RPA 失败", style=dashed];
+  jointResult -> taxpayerDetail [xlabel="返回查看开通中", style=dashed];
+  channelFail -> taxpayerDetail [xlabel="展示渠道异常", style=dashed];
+  jointReady -> activate;
+  selfResult -> taxpayerDetail;
+  activate -> taxpayerDetail -> after;
+
+  { rank=same; rpaInfo; merchant; customerConfig; }
+  customerConfig -> merchant -> rpaInfo [style=invis, weight=100];
+}
