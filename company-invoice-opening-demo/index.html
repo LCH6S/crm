@@ -2942,7 +2942,7 @@ const TAX_MATTERS = {
 };
 function taxMatterId(mode) { return TAX_MATTERS[mode]?.id || ""; }
 function taxMatterName(mode) { return TAX_MATTERS[mode]?.name || "选择公司开票能力"; }
-function isTaxApplication(item) { return Object.values(TAX_MATTERS).some((matter) => matter.id === item.matterId); }
+function isTaxApplication(item) { return isRpaChannelChange(item) || Object.values(TAX_MATTERS).some((matter) => matter.id === item.matterId); }
 let handlingApplications = [];
 let applicationSequence = 0;
 
@@ -3040,7 +3040,8 @@ function updateApplication(item, update) {
   if (!item || TERMINAL_APPLICATION_STATUSES.has(item.status)) return false;
   if (update.status && !APPLICATION_STATUS[update.status]) return false;
   update = { ...update };
-  if (item.mode === "rpa") {
+  if(isRpaChannelChange(item)) {update.businessStatus={opening:"变更中",success:"变更成功",failed:"变更失败"}[update.status||item.status];}
+  else if (item.mode === "rpa") {
     update.businessStatus = { opening: "开通中", success: "开通成功", failed: "开通失败" }[update.status || item.status];
   } else if (item.mode === "joint") {
     const record = item.progressRecords[0];
@@ -3165,7 +3166,8 @@ function renderApplicationDetail() {
   const actions = `${authorizationRecord ? `<button class="button primary" data-action="application-authorize-record" data-record="${escapeHtml(authorizationRecord.id)}">查看授权二维码</button>` : ""}${!finished ? '<button class="button border" data-action="application-refresh">刷新状态</button>' : ""}${item.status === "failed" ? (isPaymentConfig ? `<button class="button primary" data-action="payment-config-reapply" data-id="${item.id}">重新发起</button>` : '<button class="button primary" data-action="application-reapply">重新发起</button>') : ""}`;
   const tax = data.tax;
   const submissionFields = isTax ? [["开票模式", modeLabel(item.mode)], ["纳税人类型", tax?.taxpayerType === "general" ? "一般纳税人" : "小规模纳税人"], ["计税方式", tax?.taxMethod === "general" ? "一般计税" : "简易计税"], ["征收率", tax?.rate || "不适用"], ["地址", tax?.address], ["电话", tax?.phone], ["开户行", tax?.bank], ["开户行账号", tax?.bankAccount]] : [["进件机构", data.institution]];
-  if (item.mode === "rpa") submissionFields.splice(1, 0, ["开票通道", rpaChannelLabel(data.rpaChannel)]);
+  if(isRpaChannelChange(item)) submissionFields.splice(1,0,["原通道",rpaChannelLabel(data.fromChannel)],["目标通道","企享云"]);
+  else if (item.mode === "rpa") submissionFields.splice(1, 0, ["开票通道", rpaChannelLabel(data.rpaChannel)]);
   const accountFields = (data.accounts || []).map((account) => applicationFields([["开票人", account.name], ["开票人身份证号", maskRpaIdentity(account.identityNo)], ["登录手机号", account.loginAccount], ["税局角色", account.role], ["联系邮箱", account.email]])).join("");
   const jointFields = item.mode === "joint" ? (data.records || []).map((record) => applicationFields([
     ["微信商户号", record.wxMerchantNo],
@@ -3187,6 +3189,7 @@ function reapplyBlockReason(item) {
   if (!item || item.status !== "failed") return "当前申请不支持重新发起。";
   const company = companies.find(candidate => candidate.id === item.targetId && candidate.customerNo === item.customerNo);
   if (!company) return "未找到对应客户下的办理公司，请检查公司主档。";
+  if(isRpaChannelChange(item)) return rpaChannelChangeIssue(company);
   if (isTaxApplication(item)) {
     if (company.modes?.[item.mode]?.status === "success") return `该公司已开通${modeLabel(item.mode)}开票能力，请勿重复提交。`;
     if (company.country !== "CN") return "当前事项仅支持中国大陆公司。";
@@ -3210,7 +3213,8 @@ function finishApplicationReapply(check) {
   }
   const company = companies.find(candidate => candidate.id === item.targetId && candidate.customerNo === item.customerNo);
   state.modal = null;
-  if (isTaxApplication(item)) startOpening(company, item.mode, true, "application-detail");
+  if(isRpaChannelChange(item)) startRpaChannelChange(company,"application-detail");
+  else if (isTaxApplication(item)) startOpening(company, item.mode, true, "application-detail");
   else { state.modal = { type: "payment-onboarding", companyId: company.id, institution: item.institution }; renderModal(); }
 }
 
@@ -4158,6 +4162,15 @@ const initialCompanies = [
     selfUseConfigured: false,
     seed: "12",
   }),
+  ...[
+    { id:"G-COMP-XG01", name:"上海星港生活商贸有限公司", registrationNo:"91310000XGDEMO0001", opener:"陈晓宁", mobile:"13800005101", address:"上海市浦东新区星港路 101 号", phone:"021-58885101", seed:"51" },
+    { id:"G-COMP-XG02", name:"深圳星港零售有限公司", registrationNo:"91440300XGDEMO0002", opener:"林嘉怡", mobile:"13800005201", address:"深圳市南山区星港路 201 号", phone:"0755-88885201", seed:"52" },
+    { id:"G-COMP-XG03", name:"杭州星港商业管理有限公司", registrationNo:"91330100XGDEMO0003", opener:"周明远", mobile:"13800005301", address:"杭州市滨江区星港路 301 号", phone:"0571-88885301", seed:"53" },
+  ].map(({opener,mobile,...fixture})=>makeCompany({
+    ...fixture, customer:"星港生活跨境业务演示客户", customerNo:"160247795681",country:"CN",type:"Head",parent:"-",openStatus:"success",enabled:true,currentMode:"rpa",createdAt:"2026-09-10 10:30",
+    tax:taxInfo({address:fixture.address,phone:fixture.phone,bank:"",bankAccount:""}),
+    modes:{...emptyModes(),rpa:{status:"success",channel:"gaodeng",accounts:[{...rpaAccount(opener,mobile),taxAccount:mobile,email:"",updatedAt:"2026-09-14 15:00"}]}},
+  })),
   makeCompany({
     id: "G-COMP-MY01",
     name: "Meridian Retail Malaysia Sdn. Bhd.",
@@ -4322,6 +4335,7 @@ const MATTER_DEFINITIONS = [
     route: "tax-opening",
     supportsBatch: true,
   })),
+  {id:"rpa-channel-change",name:"RPA 通道变更",domain:"电子发票",target:"公司",businessType:"业务配置",allowRepeatAfterSuccess:true,mode:"rpa",icon:"R",tone:"blue",description:"将已开通 RPA 的其他通道变更为企享云",route:"tax-opening",purpose:"channel-change",supportsBatch:false},
   {
     id: "sqb-merchant",
     name: "收钱吧商户进件",
@@ -4873,6 +4887,7 @@ function matterTargetCompanies() {
 }
 
 function canSelectMatterCompany(company, matter) {
+  if(matter?.purpose === "channel-change") return !rpaChannelChangeIssue(company);
   return Boolean(company && matter?.mode && company.customerProductOpen &&
     !activeApplication(company, matter.id) &&
     matterAllowsNewRequest(matter.id, company.modes[matter.mode]?.status === "success") &&
@@ -4904,8 +4919,8 @@ function renderMatterTargetSelection() {
       const completed = !matterAllowsNewRequest(matter.id, company.modes[matter.mode]?.status === "success");
       const disabled = !canSelectMatterCompany(company, matter);
       const selected = start.targetId === company.id;
-      const modeSummary = pendingApplication ? `办理中 · ${pendingApplication.businessStatus}` : `${modeLabel(matter.mode)}尚未开通`;
-      return `<button class="target-result-card ${selected ? "selected" : ""}" type="button" data-action="select-matter-company" data-id="${escapeHtml(company.id)}" ${disabled ? "disabled" : ""}><span class="target-radio" aria-hidden="true"></span><span class="target-company-main"><strong>${escapeHtml(company.name)}</strong><small>${escapeHtml(company.registrationNo)} · ${escapeHtml(company.id)}</small><small class="target-customer">所属客户：${escapeHtml(company.customer)}（${escapeHtml(company.customerNo)}）</small></span><span class="target-company-state">${disabled ? `<span class="tag orange">${pendingApplication ? "已有申请" : completed ? "已开通" : "暂不可办理"}</span><small>${pendingApplication ? "正在办理中，请勿重复提交" : !company.customerProductOpen ? "集团未开通电子发票" : completed ? `${modeLabel(matter.mode)}已开通，无需重复办理` : "客户尚未完成乐企自用配置"}</small>` : `<span class="tag ${selected ? "blue" : ""}">${pendingApplication ? "已有申请" : selected ? "已选择" : "可办理"}</span><small>${escapeHtml(modeSummary)}</small>`}</span></button>`;
+      const modeSummary = matter.purpose === "channel-change" ? `当前通道：${rpaChannelLabel(company.modes.rpa.channel)} → 企享云` : pendingApplication ? `办理中 · ${pendingApplication.businessStatus}` : `${modeLabel(matter.mode)}尚未开通`;
+      return `<button class="target-result-card ${selected ? "selected" : ""}" type="button" data-action="select-matter-company" data-id="${escapeHtml(company.id)}" ${disabled ? "disabled" : ""}><span class="target-radio" aria-hidden="true"></span><span class="target-company-main"><strong>${escapeHtml(company.name)}</strong><small>${escapeHtml(company.registrationNo)} · ${escapeHtml(company.id)}</small><small class="target-customer">所属客户：${escapeHtml(company.customer)}（${escapeHtml(company.customerNo)}）</small></span><span class="target-company-state">${disabled ? `<span class="tag orange">${pendingApplication ? "已有申请" : completed ? "已开通" : "暂不可办理"}</span><small>${matter.purpose === "channel-change" ? escapeHtml(rpaChannelChangeIssue(company)) : pendingApplication ? "正在办理中，请勿重复提交" : !company.customerProductOpen ? "集团未开通电子发票" : completed ? `${modeLabel(matter.mode)}已开通，无需重复办理` : "客户尚未完成乐企自用配置"}</small>` : `<span class="tag ${selected ? "blue" : ""}">${pendingApplication ? "已有申请" : selected ? "已选择" : "可办理"}</span><small>${escapeHtml(modeSummary)}</small>`}</span></button>`;
     }).join("")}</div>`;
   }
   app.innerHTML = `${breadcrumb([{ label: "业务办理工作台", action: "back-business-opening" }, { label: matter.name }])}
@@ -5052,7 +5067,7 @@ function renderModeCard(company, key) {
   } else if (mode.status === "opening") {
     action = key === "joint" ? "" : `<button class="button border" type="button" data-action="refresh-mode" data-mode="${key}">刷新状态</button>`;
   } else if (mode.status === "success" && isCurrent) {
-    action = `<button class="button" type="button" disabled>当前使用</button>`;
+    action = "";
   } else if (mode.status === "success") {
     action = `<button class="button primary" type="button" data-action="switch-mode" data-mode="${key}">切换使用</button>`;
   } else if (key === "rpa") {
@@ -5060,24 +5075,29 @@ function renderModeCard(company, key) {
   } else {
     action = `<button class="button border" type="button" data-action="view-mode-progress" data-mode="${key}">查看原因</button>`;
   }
-  const linkedApplication = handlingApplications.find((item) => item.targetId === company.id && item.customerNo === company.customerNo && item.mode === key);
+  const linkedApplication = handlingApplications.find((item) => !isRpaChannelChange(item) && item.targetId === company.id && item.customerNo === company.customerNo && item.mode === key);
   if (linkedApplication && !TERMINAL_APPLICATION_STATUSES.has(linkedApplication.status)) action = `<button class="button border" data-action="view-application" data-id="${linkedApplication.id}">查看办理申请</button>`;
+  if(key === "rpa" && mode.status === "success") {
+    const changing=activeRpaChannelChange(company);
+    if(changing) action += `<button class="button border" data-action="view-application" data-id="${changing.id}">查看变更申请</button>`;
+    else if(mode.channel && mode.channel !== "qixiang") action += `<button class="button border" data-action="rpa-change-notice" data-id="${company.id}">变更通道</button>`;
+  }
   let detail = "";
   if (key === "rpa" && (mode.accounts?.length || mode.status === "opening" || mode.status === "failed")) detail = renderRpaAccounts(mode.accounts || [], mode.status, mode.failureReason || "", mode.channel);
   if (key === "joint" && mode.records?.length) detail = renderJointRecords(company, mode);
   if (key === "self" && mode.status === "pending" && !company.selfUseConfigured) detail = `<div class="mode-detail"><div class="notice warning"><span>所属客户尚未完成乐企自用配置，当前不可开通。</span></div></div>`;
   if (key === "self" && mode.status === "opening") detail = '<div class="mode-detail"><div class="notice"><span>乐企自用开通正在处理，完成后可切换为当前使用模式。</span></div></div>';
   return `<article class="mode-card ${isCurrent ? "current" : ""}">
-    <div class="mode-card-head"><div class="mode-icon">${meta.icon}</div><div class="mode-title"><div class="mode-title-line"><h3>${meta.label}</h3>${isCurrent ? '<span class="tag blue">当前使用</span>' : ""}</div><p>服务渠道：${key === "rpa" ? escapeHtml(rpaChannelLabel(mode.channel)) : meta.channel}</p></div><div>${statusMarkup(mode.status, status.label)}</div><div class="mode-actions">${action}</div></div>${detail}
+    <div class="mode-card-head"><div class="mode-title"><div class="mode-title-line"><h3>${meta.label}</h3>${isCurrent ? '<span class="tag blue">当前使用</span>' : ""}</div>${mode.status === "pending" ? "" : `<p>服务渠道：${key === "rpa" ? escapeHtml(rpaChannelLabel(mode.channel)) : meta.channel}</p>`}</div><div>${statusMarkup(mode.status, status.label)}</div><div class="mode-actions">${action}</div></div>${detail}
   </article>`;
 }
 
 function maskRpaIdentity(value) { const text=String(value || "").trim(); return text ? text.slice(0,3)+"***********"+text.slice(-4) : "—"; }
 function validRpaIdentity(value) { return !String(value || "").trim() || /^\d{17}[\dX]$/i.test(String(value).trim()); }
-function rpaLoginModeLabel(value) { return ({HOSTED:"托管",SELF_HELD:"自持",托管:"托管",自持:"自持"})[value] || "待运营确认"; }
+function rpaLoginModeLabel(value) { return ({HOSTED:"托管",SELF_HELD:"自持",托管:"托管",自持:"自持"})[value] || ""; }
 function renderRpaAccounts(accounts, status = "success", failureReason = "", channel = "qixiang") {
   const rows = accounts
-    .map((item) => `<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(maskRpaIdentity(item.identityNo))}</td><td>${escapeHtml(item.taxAccount)}</td><td>${escapeHtml(item.email)}</td><td>${escapeHtml(item.role)}</td><td>${escapeHtml(channel === "gaodeng" ? "—" : rpaLoginModeLabel(item.loginMode))}</td><td>${escapeHtml(item.loginAccount)}</td><td>${escapeHtml(item.updatedAt)}</td></tr>`)
+    .map((item) => `<tr><td>${escapeHtml(item.name)}</td><td>${escapeHtml(maskRpaIdentity(item.identityNo))}</td><td>${escapeHtml(item.taxAccount)}</td><td>${escapeHtml(item.email)}</td><td>${escapeHtml(item.role)}</td><td>${escapeHtml(channel === "gaodeng" ? "" : rpaLoginModeLabel(item.loginMode))}</td><td>${escapeHtml(channel !== "gaodeng" && rpaLoginModeLabel(item.loginMode) === "托管" ? item.loginAccount || "" : "")}</td><td>${escapeHtml(item.updatedAt)}</td></tr>`)
     .join("");
   const progress = status === "opening"
     ? '<div class="notice" style="margin-bottom:16px"><span>RPA 开通申请已提交，运营人员将联系客户完成税局登录验证及后续操作。</span></div>'
@@ -5169,7 +5189,7 @@ function startOpening(company, presetMode = "", lockPrefix = false, returnContex
 }
 
 function renderSteps(current, additional = false, fixedMode = "") {
-  const steps = ["选择开票模式", "确认纳税人信息", "填写开通信息", "确认提交"];
+  const steps = ["选择开票模式", "确认纳税人信息", state.opening?.purpose === "channel-change" ? "确认开票人资料" : "填写开通信息", "确认提交"];
   return `<div class="steps">${(fixedMode ? steps.slice(1) : steps)
     .map((title, index) => {
       const step = index + (fixedMode ? 2 : 1);
@@ -5194,10 +5214,10 @@ function renderChinaOpening() {
   const breadcrumbItems = opening.returnContext === "application-detail"
     ? [{ label: "业务办理工作台", action: "back-business-opening" }, { label: "申请详情", action: "cancel-opening" }, { label: opening.applicationId ? "补充申请资料" : "重新发起申请" }]
     : opening.returnContext === "company-detail"
-    ? [{ label: "我的客户", action: "back-customers" }, { label: "公司详情", action: "back-company-invoice" }, { label: opening.mode ? taxMatterName(opening.mode) : "选择公司开票能力" }]
+    ? [{ label: "我的客户", action: "back-customers" }, { label: "公司详情", action: "back-company-invoice" }, { label: opening.mode ? (opening.purpose === "channel-change" ? "RPA 通道变更" : taxMatterName(opening.mode)) : "选择公司开票能力" }]
     : opening.returnContext === "matter-target"
-      ? [{ label: "业务办理工作台", action: "back-business-opening" }, { label: "选择办理公司", action: "back-matter-target" }, { label: taxMatterName(opening.mode) }]
-      : [{ label: "电子发票", action: "back-invoice-business" }, { label: opening.mode ? taxMatterName(opening.mode) : "选择公司开票能力" }];
+      ? [{ label: "业务办理工作台", action: "back-business-opening" }, { label: "选择办理公司", action: "back-matter-target" }, { label: (opening.purpose === "channel-change" ? "RPA 通道变更" : taxMatterName(opening.mode)) }]
+      : [{ label: "电子发票", action: "back-invoice-business" }, { label: opening.mode ? (opening.purpose === "channel-change" ? "RPA 通道变更" : taxMatterName(opening.mode)) : "选择公司开票能力" }];
   app.innerHTML = `
     ${breadcrumb(breadcrumbItems)}
     ${companySummary(company, false)}
@@ -5279,6 +5299,7 @@ function renderModeForm(company, opening) {
 }
 
 function renderRpaChannel(opening) {
+  if(opening.purpose === "channel-change") return `<section class="rpa-channel-section"><div class="section-heading"><h2>变更开票通道</h2></div><dl class="review-grid"><div><dt>原通道</dt><dd>${escapeHtml(rpaChannelLabel(opening.fromChannel))}</dd></div><div><dt>目标通道</dt><dd>企享云</dd></div></dl><div class="notice">运营确认切换成功前，继续保留原通道和已开通能力。</div></section>`;
   const channel = opening.rpa.channel || "qixiang";
   return `<section class="rpa-channel-section"><div class="section-heading"><h2>选择开票通道</h2></div><div class="rpa-channel-options" role="group" aria-label="开票通道"><button type="button" class="rpa-channel-choice ${channel === "qixiang" ? "selected" : ""}" aria-pressed="${channel === "qixiang"}" data-action="rpa-channel-qixiang"><span aria-hidden="true" class="channel-choice-dot"></span>企享云</button><button type="button" class="rpa-channel-choice ${channel !== "qixiang" ? "selected" : ""}" aria-pressed="${channel !== "qixiang"}" data-action="rpa-channel-other"><span aria-hidden="true" class="channel-choice-dot"></span>其他${channel !== "qixiang" ? `<span class="rpa-channel-name">${escapeHtml(rpaChannelLabel(channel))}</span>` : ""}</button></div>${opening.errors.channel ? `<small class="form-error">${escapeHtml(opening.errors.channel)}</small>` : ""}</section>`;
 }
@@ -5348,6 +5369,7 @@ function renderChinaReview(company, opening) {
   const tax = opening.tax;
   let modeDetail = "";
   if (opening.mode === "rpa") modeDetail = `<div><dt>开票通道</dt><dd>${escapeHtml(rpaChannelLabel(opening.rpa.channel))}</dd></div><div><dt>开票人姓名</dt><dd>${escapeHtml(opening.rpa.name)}</dd></div><div><dt>开票人身份证号</dt><dd>${escapeHtml(maskRpaIdentity(opening.rpa.identityNo))}</dd></div><div><dt>税局登录手机号</dt><dd>${escapeHtml(opening.rpa.mobile)}</dd></div><div><dt>开票人身份</dt><dd>${escapeHtml(opening.rpa.role)}</dd></div><div><dt>联系邮箱</dt><dd>${escapeHtml(opening.rpa.email || "-")}</dd></div>`;
+  if (opening.purpose === "channel-change") modeDetail = `<div><dt>原通道</dt><dd>${escapeHtml(rpaChannelLabel(opening.fromChannel))}</dd></div>` + modeDetail.replace("开票通道", "目标通道");
   if (opening.mode === "joint") {
     const merchant = selectedMerchant(company, opening);
     modeDetail = `<div><dt>收钱吧商户</dt><dd>${escapeHtml(merchant?.name || "-")}（${escapeHtml(merchant?.id || "-")}）</dd></div><div><dt>微信商户号</dt><dd>${escapeHtml(opening.joint.wxMerchantNo)}</dd></div><div><dt>开票能力</dt><dd>${opening.joint.abilities.map((key) => ABILITY_LABELS[key]).join("、")}</dd></div>`;
@@ -5355,7 +5377,7 @@ function renderChinaReview(company, opening) {
   if (opening.mode === "self") modeDetail = `<div><dt>使用单位接入</dt><dd>已完成</dd></div><div><dt>使用单位名称</dt><dd>${escapeHtml(company.name)}</dd></div><div><dt>纳税人识别号</dt><dd>${escapeHtml(company.registrationNo)}</dd></div>`;
   return `<div class="flow-section"><div class="section-heading"><div><h2>确认提交</h2></div></div>
     <h3>公司及税务信息</h3><dl class="review-grid"><div><dt>所属客户</dt><dd>${escapeHtml(company.customer)}（${escapeHtml(company.customerNo)}）</dd></div><div><dt>公司名称</dt><dd>${escapeHtml(company.name)}</dd></div><div><dt>统一社会信用代码</dt><dd>${escapeHtml(company.registrationNo)}</dd></div><div><dt>纳税人类型</dt><dd>${tax.taxpayerType === "general" ? "一般纳税人" : "小规模纳税人"}</dd></div><div><dt>计税方式</dt><dd>${tax.taxMethod === "general" ? "一般计税" : "简易计税"}</dd></div><div><dt>征收率</dt><dd>${escapeHtml(tax.taxMethod === "simple" ? tax.rate : "-")}</dd></div></dl>
-    <div class="section-divider"></div><h3>${escapeHtml(modeLabel(opening.mode))}开通信息</h3><dl class="review-grid">${modeDetail}</dl>
+    <div class="section-divider"></div><h3>${opening.purpose === "channel-change" ? "通道变更信息" : escapeHtml(modeLabel(opening.mode))+"开通信息"}</h3><dl class="review-grid">${modeDetail}</dl>
     <div class="flow-actions"><button class="button border" type="button" data-action="prev-opening">上一步</button><button class="button primary" type="button" data-action="submit-opening">确认提交</button></div></div>`;
 }
 
@@ -5433,7 +5455,10 @@ function beginMatter(matter) {
 function matterNoticeContent(matter) {
   const prerequisites = [`选择需要办理的${matter.target}，核对名称和所属客户。`];
   const rules = ["同一客户、同一业务对象、同一事项有办理中的申请时，不能重复发起。"];
-  if (matter.route === "tax-opening") {
+  if(matter.purpose === "channel-change") {
+    prerequisites.splice(0,prerequisites.length,"公司已开通其他非企享云的 RPA 通道","核对开票人资料，联系开票人配合运营完成企享云登录验证。");
+    rules.splice(0,rules.length,"本期仅单个提交，目标通道为企享云。","同一税号不能重复发起办理中的通道变更申请。","运营确认切换成功前，保留原通道和已开通能力；变更失败不关闭原通道。");
+  } else if (matter.route === "tax-opening") {
     prerequisites.splice(0, prerequisites.length,
       "需先在客户下创建相应公司主档。",
       "所属客户需已开通电子发票产品。");
@@ -5700,6 +5725,7 @@ function prevOpening() {
 }
 
 function submitChinaOpening() {
+  if(state.opening?.purpose === "channel-change") return submitRpaChannelChange();
   const company = currentCompany();
   const opening = state.opening;
   if (!company || !opening) return;
@@ -6069,6 +6095,7 @@ app.addEventListener("click", (event) => {
     document.getElementById("matterSearch")?.focus();
     return;
   }
+  if(action === "rpa-change-notice") {state.modal={type:"matter-notice",matterId:"rpa-channel-change",companyId:target.dataset.id};renderModal();return;}
   if (action === "open-matter") {
     const matter = MATTER_CATALOG.find((item) => item.id === target.dataset.matter);
     if (!matter) return;
@@ -6108,7 +6135,8 @@ app.addEventListener("click", (event) => {
     }
     state.companyId = company.id;
     state.customerNo = company.customerNo;
-    startOpening(company, matter.mode, false, "matter-target");
+    if(matter.purpose === "channel-change") startRpaChannelChange(company,"matter-target");
+    else startOpening(company, matter.mode, false, "matter-target");
     return;
   }
   if (action === "business-domain") {
@@ -6657,6 +6685,7 @@ modalRoot.addEventListener("click", (event) => {
   } else if (action === "accept-matter-notice") {
     if (state.modal?.type !== "matter-notice") return;
     const matter = MATTER_CATALOG.find((item) => item.id === state.modal.matterId);
+    if(matter?.purpose === "channel-change" && state.modal.companyId) {const company=companies.find(c=>c.id===state.modal.companyId);state.modal=null;startRpaChannelChange(company,"company-detail");return;}
     if (matter?.supportsBatch) { state.modal = { type: "submission-method", matterId: matter.id }; renderModal(); }
     else if (matter) beginMatter(matter);
   } else if (action === "confirm-submission-method") {
@@ -6733,6 +6762,47 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+
+function isRpaChannelChange(item) {return item?.matterId === "rpa-channel-change";}
+function activeRpaChannelChange(company) {return company && handlingApplications.find(item=>isRpaChannelChange(item)&&item.registrationNo===company.registrationNo&&!TERMINAL_APPLICATION_STATUSES.has(item.status));}
+function rpaChannelChangeIssue(company) {
+  if(!company || company.country !== "CN") return "仅支持中国大陆公司";
+  if(!company.customerProductOpen) return "所属客户未开通电子发票产品";
+  if(company.modes.rpa?.status !== "success") return "该税号 RPA 尚未开通";
+  if(!company.modes.rpa.channel || company.modes.rpa.channel === "qixiang") return "当前通道已是企享云，无需变更";
+  if(activeRpaChannelChange(company)) return "该税号已有办理中的通道变更申请";
+  return "";
+}
+function startRpaChannelChange(company,returnContext="company-detail") {
+  const reason=rpaChannelChangeIssue(company);if(reason){showToast(reason);return;}
+  const account=company.modes.rpa.accounts?.[0] || {};
+  state.companyId=company.id;state.customerNo=company.customerNo;state.modal=null;state.result=null;
+  state.opening={kind:"additional",purpose:"channel-change",mode:"rpa",fixedMode:"rpa",step:2,hasExistingTaxpayer:true,returnContext,fromChannel:company.modes.rpa.channel,tax:clone(company.tax),rpa:{channel:"qixiang",name:account.name || "",identityNo:account.identityNo || "",mobile:account.loginAccount || "",password:"",role:account.role || "办税员",email:account.email === "-" ? "" : account.email || ""},errors:{}};
+  state.view="opening-cn";render();scrollMain({top:0});
+}
+function submitRpaChannelChange() {
+  const company=currentCompany(),opening=state.opening;if(!company || opening?.purpose !== "channel-change")return;
+  const reason=rpaChannelChangeIssue(company);
+  if(reason || company.modes.rpa.channel !== opening.fromChannel){showToast(reason || "当前通道已变化，请重新检查");return;}
+  if(!validateRpaStep()){opening.step=3;render();return;}
+  const account={...rpaAccount(opening.rpa.name,opening.rpa.mobile),identityNo:opening.rpa.identityNo || "",role:opening.rpa.role,email:opening.rpa.email || ""};
+  const item=createApplication(company,{matterId:"rpa-channel-change",matter:"RPA 通道变更",mode:"rpa",status:"opening",businessStatus:"变更中",description:"运营将协助完成企享云验证；切换成功前继续使用原通道。",actionOwner:"运营人员",submission:{mode:"rpa",scope:"通道变更",fromChannel:opening.fromChannel,rpaChannel:"qixiang",tax:clone(company.tax),accounts:[account],previousRpa:clone(company.modes.rpa)}});
+  if(item){showApplication(item.id);showToast("通道变更申请已提交");}
+}
+// Demo adapter for the authoritative operations result; never mutate original submission snapshots.
+function applyRpaChannelChangeResult(id,status,reason="",accountUpdate={}) {
+  const item=handlingApplications.find(x=>x.id===id);if(!isRpaChannelChange(item)||TERMINAL_APPLICATION_STATUSES.has(item.status))return false;
+  const company=companies.find(c=>c.id===item.targetId&&c.customerNo===item.customerNo),data=item.versions[0].data;
+  if(!company||!["success","failed"].includes(status))return false;
+  if(status === "success") {
+    if(company.modes.rpa.status!=="success"||company.modes.rpa.channel!==data.fromChannel)return false;
+    if(!["托管","自持","HOSTED","SELF_HELD"].includes(accountUpdate.loginMode))return false;
+    company.modes.rpa={...company.modes.rpa,channel:"qixiang",accounts:data.accounts.map(a=>({...clone(a),...accountUpdate,updatedAt:applicationTime()}))};
+  }
+  return updateApplication(item,{status,description:status === "success"?"已切换为企享云，RPA 保持已开通。":reason || "运营已驳回通道变更，原通道保持不变。",result:status === "success"?"通道变更完成":reason || "变更失败，原通道保持不变。",actionOwner:""});
+}
+
+for(const id of ["G-COMP-003","G-COMP-009"]){const c=companies.find(c=>c.id===id);c.modes.rpa.channel="gaodeng";c.modes.rpa.accounts.forEach(a=>a.loginMode="");}
 seedHandlingApplications();
 initCrmUi();
 render();
