@@ -1240,12 +1240,12 @@
                     <label class="switch-setting-row" for="autoInvoiceEnabled"><span><strong>启用自动开票</strong><small>开启后，新增订单同步成功时按本品牌规则自动发起开票。</small></span><span class="switch-control"><input id="autoInvoiceEnabled" type="checkbox" /><i></i></span></label>
                   </section>
                   <section class="setting-block hidden" data-auto-content>
+                    <label class="switch-setting-row" for="autoInvoiceShowResult"><span><strong>“个人”自动开票结果展示给消费者</strong><small>控制系统自动以“个人”作为抬头开具的发票是否向消费者展示</small></span><span class="switch-control"><input id="autoInvoiceShowResult" type="checkbox" /><i></i></span></label>
+                  </section>
+                  <section class="setting-block hidden" data-auto-content>
                     <div class="setting-head"><div><h2>税号默认规则</h2><p>没有单独配置的税号使用此规则。</p></div><div class="setting-actions"><button class="default-btn small" id="editAutoInvoiceDefaultBtn">编辑</button><button class="default-btn small hidden" id="cancelAutoInvoiceDefaultBtn">取消</button><button class="primary-btn small hidden" id="saveAutoInvoiceDefaultBtn">保存</button></div></div>
                     <div class="fallback-config-grid" id="autoInvoiceDefaultSummary"><div><span>是否允许自动开票</span><strong id="autoInvoiceDefaultView">默认不允许</strong></div></div>
                     <div class="hidden" id="autoInvoiceDefaultEditor"><fieldset class="auto-invoice-defaults"><legend>是否允许自动开票</legend><label><input type="radio" name="autoInvoiceDefault" value="allow" />默认允许</label><label><input type="radio" name="autoInvoiceDefault" value="deny" />默认不允许</label></fieldset><p class="auto-invoice-hint">修改默认规则不会覆盖已有的税号单独配置。</p></div>
-                  </section>
-                  <section class="setting-block hidden" data-auto-content>
-                    <label class="switch-setting-row" for="autoInvoiceShowResult"><span><strong>“个人”自动开票结果展示给消费者</strong><small>控制系统自动以“个人”作为抬头开具的发票是否向消费者展示</small></span><span class="switch-control"><input id="autoInvoiceShowResult" type="checkbox" /><i></i></span></label>
                   </section>
                   <section class="setting-block tax-fallback-exception-card hidden" data-auto-content>
                     <div class="panel-head fallback-exception-head"><div><h2>税号单独配置</h2><p>税号单独配置优先于默认规则；删除后恢复默认规则。</p></div><div class="panel-actions"><button class="default-btn small" id="importAutoInvoiceTaxBtn">批量导入</button><button class="primary-btn small" id="addAutoInvoiceTaxBtn">新增税号配置</button></div></div>
