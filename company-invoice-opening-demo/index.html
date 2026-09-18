@@ -1774,7 +1774,7 @@ textarea:focus-visible,
   width: 100%;
   text-align: left;
   color: var(--semi-color-text-0);
-  min-height: 150px;
+  min-height: 102px;
   overflow: hidden;
   flex-direction: column;
   padding: 20px 20px 0;
@@ -1875,34 +1875,6 @@ textarea:focus-visible,
   margin: 0;
   color: var(--semi-color-text-2);
   font-size: 13px;
-}
-
-.matter-card-foot {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 48px;
-  border-top: 1px solid #edf0f5;
-}
-
-.matter-card-foot > span {
-  color: var(--semi-color-text-2);
-  font-size: 12px;
-}
-
-.matter-entry {
-  padding-right: 0;
-}
-
-.matter-entry b {
-  margin-left: 5px;
-  font-size: 16px;
-  transition: transform 0.18s;
-}
-
-.matter-card:hover .matter-entry b {
-  transform: translateX(3px);
 }
 
 .matter-empty {
@@ -4809,7 +4781,6 @@ function filteredMatters() {
 function renderMatterCard(matter) {
   return `<button class="matter-card" type="button" data-action="open-matter" data-matter="${escapeHtml(matter.id)}" data-matter-name="${escapeHtml(matter.name)}" aria-label="${escapeHtml(matter.name)}">
     <span class="matter-card-body"><span class="matter-card-title">${escapeHtml(matter.name)}</span><span class="matter-card-description">${escapeHtml(matter.description)}</span></span>
-    <span class="matter-card-foot"><span>${escapeHtml(matter.domain)}</span><span class="button link matter-entry" aria-hidden="true">去办理 <b>→</b></span></span>
   </button>`;
 }
 
