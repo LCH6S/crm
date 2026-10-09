@@ -3,7 +3,7 @@
 CRM 销售端品牌详情中的 Meta POS 设置：
 
 - 首页素材设置
-- 应用工作模式设置（只读、编辑、保存二次确认）
+- 应用自启动设置（只读、编辑、保存二次确认）
 
 在线演示：https://lch6s.github.io/crm/meta-pos-settings/
 
