@@ -186,6 +186,9 @@ const batchTasks = [
   },
 ];
 
+// Existing sample tasks belong to this customer; new tasks record their actual owner.
+batchTasks.forEach((task) => { task.customerId = "160247730638"; });
+
 function companySafe(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -1165,6 +1168,13 @@ function setBatchStage(step) {
 
 function openBatch(mode) {
   companyState.batchMode = mode;
+  if (mode === "brandStoreCreate") {
+    const brand = brands.find((item) => item.code === state.currentBrandDetailCode);
+    const customer = brand && getBrandCustomer(brand);
+    if (!customer) return;
+    state.currentCustomerId = customer.id;
+  }
+  companyState.batchCustomerId = state.currentCustomerId;
   companyState.batchOrigin = mode === "brandStoreCreate" ? "brandStore" : "company";
   companyState.batchFileName = "";
   companyState.batchRows = [];
@@ -1257,6 +1267,7 @@ function executeBatch() {
   const modeMeta = getBatchModeMeta();
   const task = {
     id: `TASK-${Date.now()}`,
+    customerId: companyState.batchCustomerId,
     type: modeMeta.taskType,
     fileName: companyState.batchFileName,
     operator: "刘辰浩",
@@ -1327,7 +1338,7 @@ function batchTaskTypeLabel(type) {
 function renderBatchRecords() {
   const type = document.getElementById("batchRecordTypeFilter").value;
   const status = document.getElementById("batchRecordStatusFilter").value;
-  const tasks = batchTasks.filter((task) => (!type || task.type === type) && (!status || task.status === status));
+  const tasks = batchTasks.filter((task) => task.customerId === state.currentCustomerId && (!type || task.type === type) && (!status || task.status === status));
   document.getElementById("batchRecordRows").innerHTML = tasks.length ? tasks.map((task) => {
     const statusMeta = batchTaskStatusMeta(task.status);
     return `<tr><td>${task.createdAt}</td><td>${batchTaskTypeLabel(task.type)}</td><td title="${companySafe(task.fileName)}">${companySafe(task.fileName)}</td><td>${task.operator}</td><td><span class="batch-status ${statusMeta.className}">${statusMeta.label}</span></td><td>${task.total}</td><td><span class="success-text">${task.pass}</span> / <span class="danger-text">${task.fail}</span></td><td>${batchTaskExecutionResult(task)}</td><td><button class="link-btn batch-detail-link" data-batch-task-detail="${task.id}">查看详情</button></td></tr>`;
@@ -1335,9 +1346,10 @@ function renderBatchRecords() {
 }
 
 function openBatchRecords() {
-  renderBatchRecords();
-  setActiveSidebar("batchOperationRecordsMenuBtn");
-  setView("batchOperationRecordsView");
+  const fromBatch = document.getElementById("companyBatchView").classList.contains("active");
+  const customerId = fromBatch ? companyState.batchCustomerId : state.currentCustomerId;
+  openCustomerDetail(customerId);
+  activateCustomerTab("customerBatchRecordsPanel");
 }
 
 function returnFromCompanyBatch() {
@@ -1349,9 +1361,10 @@ function returnFromCompanyBatch() {
 }
 
 function openBatchTaskDetail(taskId) {
-  const task = batchTasks.find((item) => item.id === taskId);
+  const task = batchTasks.find((item) => item.id === taskId && item.customerId === state.currentCustomerId);
   if (!task) return;
   const statusMeta = batchTaskStatusMeta(task.status);
+  document.getElementById("batchRecordDetailBreadcrumb").textContent = `主页 / 我的客户 / ${getCurrentCustomer().name} / 批量操作记录 / 任务详情`;
   document.getElementById("batchRecordDetailTitle").textContent = `${batchTaskTypeLabel(task.type)}任务详情`;
   document.getElementById("batchRecordDetailMeta").innerHTML = `${companySafe(task.id)} · ${companySafe(task.fileName)} · ${companySafe(task.operator)} · ${companySafe(task.createdAt)} · <span class="batch-status ${statusMeta.className}">${statusMeta.label}</span>`;
   const executionStats = task.status === "ExecutionCompleted"
@@ -1411,7 +1424,6 @@ function bindCompanyEvents() {
   document.getElementById("batchCreateCompanyBtn").addEventListener("click", () => openBatch("create"));
   document.getElementById("batchEnableInvoiceBtn").addEventListener("click", () => openBatch("invoice"));
   document.getElementById("batchAssociateStoresBtn").addEventListener("click", () => openBatch("store"));
-  document.getElementById("batchOperationRecordsMenuBtn").addEventListener("click", openBatchRecords);
   document.getElementById("detectLeqiCompaniesBtn").addEventListener("click", startLeqiDetection);
   document.getElementById("selectAllLeqiCandidates").addEventListener("change", (event) => {
     companyState.leqiDetectionRows.filter((row) => row.status === "open" || row.status === "switch").forEach((row) => {

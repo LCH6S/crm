@@ -4556,6 +4556,12 @@ label,
   pointer-events: none;
 }
 
+#categoryAliasHelpPopover {
+  width: min(360px, calc(100vw - 24px));
+  pointer-events: auto;
+  white-space: normal;
+}
+
 .field-help-popover strong {
   color: #262626;
   font-size: 13px;
@@ -6198,6 +6204,10 @@ label,
 .rule-settings-panel .rule-sub-tabs button {
   min-height: 42px;
   padding: 0 4px;
+  position: relative;
+  border: 0;
+  appearance: none;
+  cursor: pointer;
   border-radius: 0;
   background: transparent;
 }
@@ -6209,6 +6219,11 @@ label,
 
 .rule-settings-panel .rule-sub-tabs button.active::after {
   display: block;
+  position: absolute;
+  content: "";
+  right: 0;
+  bottom: 0;
+  left: 0;
   height: 2px;
   background: var(--semi-color-primary);
 }
@@ -6264,6 +6279,16 @@ label,
 
 .rule-settings-panel .table-toolbar.actions-only {
   margin: 0 0 12px;
+}
+
+.rule-settings-panel .special-rule-panel .query-filter {
+  grid-template-columns: repeat(3, minmax(160px, 1fr)) auto;
+}
+
+@media (max-width: 1100px) {
+  .rule-settings-panel .special-rule-panel .query-filter {
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+  }
 }
 
 .tax-detail-status-stack {
@@ -7741,3 +7766,14 @@ label,
     justify-content: flex-end;
   }
 }
+/* Brand automatic invoicing */
+.auto-invoice-panel .setting-head h2,
+.auto-invoice-panel .panel-head h2,
+.auto-invoice-panel .switch-setting-row strong { font-size: 14px; font-weight: 600; }
+.auto-invoice-panel .switch-setting-row { max-width: none; }
+.auto-invoice-panel .data-table td.empty-state { position: static; text-align: center; white-space: normal; width: auto; min-width: 0; }
+.auto-invoice-hint { color: var(--muted); font-size: 13px; line-height: 1.7; margin: 12px 0 0; }
+.auto-invoice-defaults { border: 0; padding: 0; margin: 20px 0 0; display: flex; gap: 28px; }
+.auto-invoice-defaults legend { font-size: 14px; margin-bottom: 12px; }
+.auto-invoice-defaults label { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+.auto-invoice-defaults input[type="radio"] { width: 16px; height: 16px; min-height: 0; margin: 0; accent-color: var(--primary); }

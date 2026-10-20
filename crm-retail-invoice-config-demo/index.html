@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>电子发票设置</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20261020-special-product" />
   </head>
   <body>
     <header class="topbar">
@@ -32,7 +32,6 @@
           <button class="side-child active" id="myCustomersMenuBtn" type="button">我的客户</button>
           <button class="side-child" id="companyManagementMenuBtn" type="button">公司管理</button>
           <button class="side-child" id="brandManagementMenuBtn" type="button">品牌管理</button>
-          <button class="side-child" id="batchOperationRecordsMenuBtn" type="button">批量操作记录</button>
         </div>
       </aside>
 
@@ -146,6 +145,7 @@
             <button data-customer-tab="customerBrandListPanel">品牌列表</button>
             <button data-customer-tab="productFeaturePanel">产品管理</button>
             <button data-customer-tab="customerAgreementManagementPanel">协议确认管理</button>
+            <button data-customer-tab="customerBatchRecordsPanel">批量操作记录</button>
           </div>
           <section class="customer-tab-panel active customer-basic-info-panel" id="customerBasicInfoPanel">
             <section class="entity-info-section">
@@ -301,6 +301,20 @@
               </div>
             </section>
           </section>
+        <section class="customer-tab-panel" id="customerBatchRecordsPanel" aria-label="批量操作记录">
+          <section class="panel batch-operation-records-panel">
+            <div class="panel-head"><div><h2>批量操作记录</h2></div></div>
+            <section class="batch-record-filter">
+              <label>任务类型<select id="batchRecordTypeFilter"><option value="">全部</option><option value="CREATE_COMPANY">批量创建公司</option><option value="ENABLE_INVOICE">批量开通发票</option><option value="ASSOCIATE_STORE">批量关联门店</option><option value="CREATE_BRAND_STORE">批量创建门店</option></select></label>
+              <label>状态<select id="batchRecordStatusFilter"><option value="">全部</option><option value="Checking">检查中</option><option value="CheckFailed">检查失败</option><option value="CheckCompleted">待执行</option><option value="Executing">执行中</option><option value="ExecutionCompleted">执行完成</option><option value="ExecutionFailed">执行失败</option></select></label>
+              <div><button class="primary-btn" id="searchBatchRecordsBtn">查询</button><button class="default-btn" id="resetBatchRecordsBtn">重置</button></div>
+            </section>
+            <section class="batch-record-list" id="batchRecordListPanel">
+              <div class="table-scroll"><table class="data-table wide"><thead><tr><th>创建时间</th><th>任务类型</th><th>文件名</th><th>操作人</th><th>状态</th><th>总行数</th><th>通过/不通过</th><th>执行结果</th><th>操作</th></tr></thead><tbody id="batchRecordRows"></tbody></table></div>
+            </section>
+          </section>
+        </section>
+
         </section>
 
         <section class="page-view agreement-resource-editor-view" id="agreementResourceEditorView" aria-label="内容资源编辑">
@@ -367,23 +381,8 @@
           </section>
         </section>
 
-        <section class="page-view batch-operation-records-view" id="batchOperationRecordsView" aria-label="批量操作记录">
-          <div class="breadcrumb page-breadcrumb">主页　/　批量操作记录</div>
-          <section class="panel batch-operation-records-panel">
-            <div class="panel-head"><div><h2>批量操作记录</h2></div></div>
-            <section class="batch-record-filter">
-              <label>任务类型<select id="batchRecordTypeFilter"><option value="">全部</option><option value="CREATE_COMPANY">批量创建公司</option><option value="ENABLE_INVOICE">批量开通发票</option><option value="ASSOCIATE_STORE">批量关联门店</option><option value="CREATE_BRAND_STORE">批量创建门店</option></select></label>
-              <label>状态<select id="batchRecordStatusFilter"><option value="">全部</option><option value="Checking">检查中</option><option value="CheckFailed">检查失败</option><option value="CheckCompleted">待执行</option><option value="Executing">执行中</option><option value="ExecutionCompleted">执行完成</option><option value="ExecutionFailed">执行失败</option></select></label>
-              <div><button class="primary-btn" id="searchBatchRecordsBtn">查询</button><button class="default-btn" id="resetBatchRecordsBtn">重置</button></div>
-            </section>
-            <section class="batch-record-list" id="batchRecordListPanel">
-              <div class="table-scroll"><table class="data-table wide"><thead><tr><th>创建时间</th><th>任务类型</th><th>文件名</th><th>操作人</th><th>状态</th><th>总行数</th><th>通过/不通过</th><th>执行结果</th><th>操作</th></tr></thead><tbody id="batchRecordRows"></tbody></table></div>
-            </section>
-          </section>
-        </section>
-
         <section class="page-view batch-record-detail-view" id="batchRecordDetailView" aria-label="批量操作记录详情">
-          <div class="breadcrumb page-breadcrumb">主页　/　批量操作记录　/　任务详情</div>
+          <div class="breadcrumb page-breadcrumb" id="batchRecordDetailBreadcrumb">主页　/　客户详情　/　批量操作记录　/　任务详情</div>
           <div class="page-back-row"><button class="default-btn" id="backToBatchRecordListBtn">返回批量操作记录</button></div>
           <section class="panel batch-record-detail" id="batchRecordDetailPanel">
             <div class="panel-head"><div><h2 id="batchRecordDetailTitle">任务详情</h2><p id="batchRecordDetailMeta"></p></div></div>
@@ -871,6 +870,7 @@
             <button data-tab="defaultRulePanel">兜底开票项目设置</button>
             <button data-tab="brandPaymentPanel">不可开票支付方式</button>
             <button data-tab="brandEntryPanel">开票功能设置</button>
+            <button data-tab="brandAutoInvoicePanel">自动开票设置</button>
             <button data-tab="brandApplyPagePanel">开票申请页设置</button>
             <button data-tab="brandDeveloperPanel">开发设置</button>
           </div>
@@ -935,10 +935,14 @@
                   </div>
                 </section>
 
-                <section class="rule-sub-panel" id="categoryRulePanel">
+                <div class="rule-sub-tabs" role="tablist" aria-label="商品匹配方式">
+                  <button class="active" id="categoryRuleTab" data-rule-mode="category" role="tab" aria-selected="true" aria-controls="categoryRulePanel">商品大类匹配</button>
+                  <button id="specialRuleTab" data-rule-mode="special" role="tab" aria-selected="false" aria-controls="categoryRulePanel">特殊商品匹配</button>
+                </div>
+                <section class="rule-sub-panel" id="categoryRulePanel" role="tabpanel" aria-labelledby="categoryRuleTab">
                   <div class="sub-panel-block">
                     <div class="section-heading">
-                      <p class="section-description">按品牌维度维护订单商品行的商品大类对应的开票税收分类编码</p>
+                      <p class="section-description" id="ruleMatchingDescription">按品牌维度维护订单商品行的商品大类对应的开票税收分类编码</p>
                     </div>
                     <div class="query-filter">
                       <label class="filter-field">
@@ -948,6 +952,10 @@
                       <label class="filter-field">
                         <input id="ruleTaxCodeKeyword" type="search" placeholder=" " />
                         <span>税收分类编码</span>
+                      </label>
+                      <label class="filter-field hidden" id="ruleNameFilter">
+                        <input id="ruleNameKeyword" type="search" placeholder=" " />
+                        <span>商品名称</span>
                       </label>
                       <div class="query-actions">
                         <button class="primary-btn small" id="ruleSearchBtn">查询</button>
@@ -962,7 +970,7 @@
                     </div>
                     <div class="table-scroll">
                       <table class="data-table wide category-rule-table">
-                        <thead>
+                        <thead id="ruleTableHead">
                           <tr>
                             <th>商品大类</th>
                             <th>大类别名</th>
@@ -1010,6 +1018,7 @@
                         <div class="setting-actions">
                           <span class="tag gray" id="brandFallbackConfigStatus">未配置</span>
                           <button class="default-btn small" id="editBrandFallbackBtn" type="button">配置</button>
+                          <button class="link-btn danger hidden" id="deleteBrandFallbackBtn" type="button">删除</button>
                         </div>
                       </div>
                       <div class="fallback-config-grid" id="brandFallbackConfigView">
@@ -1233,6 +1242,27 @@
                 </div>
               </section>
 
+              <section class="tab-panel" id="brandAutoInvoicePanel" data-tab-group="brandSettings">
+                <div class="panel fallback-settings-panel auto-invoice-panel"><div class="fallback-setting-stack">
+                  <section class="setting-block fallback-switch-block">
+                    <label class="switch-setting-row" for="autoInvoiceEnabled"><span><strong>启用自动开票</strong><small>开启后，新增订单同步成功时按本品牌规则自动发起开票。</small></span><span class="switch-control"><input id="autoInvoiceEnabled" type="checkbox" /><i></i></span></label>
+                  </section>
+                  <section class="setting-block hidden" data-auto-content>
+                    <label class="switch-setting-row" for="autoInvoiceShowResult"><span><strong>“个人”自动开票结果展示给消费者</strong><small>控制系统自动以“个人”作为抬头开具的发票是否向消费者展示</small></span><span class="switch-control"><input id="autoInvoiceShowResult" type="checkbox" /><i></i></span></label>
+                  </section>
+                  <section class="setting-block hidden" data-auto-content>
+                    <div class="setting-head"><div><h2>税号默认规则</h2><p>没有单独配置的税号使用此规则。</p></div><div class="setting-actions"><button class="default-btn small" id="editAutoInvoiceDefaultBtn">编辑</button><button class="default-btn small hidden" id="cancelAutoInvoiceDefaultBtn">取消</button><button class="primary-btn small hidden" id="saveAutoInvoiceDefaultBtn">保存</button></div></div>
+                    <div class="fallback-config-grid" id="autoInvoiceDefaultSummary"><div><span>是否允许自动开票</span><strong id="autoInvoiceDefaultView">默认不允许</strong></div></div>
+                    <div class="hidden" id="autoInvoiceDefaultEditor"><fieldset class="auto-invoice-defaults"><legend>是否允许自动开票</legend><label><input type="radio" name="autoInvoiceDefault" value="allow" />默认允许</label><label><input type="radio" name="autoInvoiceDefault" value="deny" />默认不允许</label></fieldset><p class="auto-invoice-hint">修改默认规则不会覆盖已有的税号单独配置。</p></div>
+                  </section>
+                  <section class="setting-block tax-fallback-exception-card hidden" data-auto-content>
+                    <div class="panel-head fallback-exception-head"><div><h2>税号单独配置</h2><p>税号单独配置优先于默认规则；删除后恢复默认规则。</p></div><div class="panel-actions"><button class="default-btn small" id="importAutoInvoiceTaxBtn">批量导入</button><button class="primary-btn small" id="addAutoInvoiceTaxBtn">新增税号配置</button></div></div>
+                    <div class="query-filter"><label class="filter-field"><input id="autoInvoiceTaxSearch" type="search" placeholder=" " /><span>税号 / 纳税人名称</span></label><div class="query-actions"><button class="primary-btn small" id="autoInvoiceSearchBtn">查询</button><button class="link-btn" id="autoInvoiceClearBtn">清空</button></div></div>
+                    <div class="table-scroll"><table class="data-table"><thead><tr><th>税号</th><th>纳税人名称</th><th>是否允许自动开票</th><th>更新时间</th><th class="action-col">操作</th></tr></thead><tbody id="autoInvoiceTaxRows"></tbody></table></div>
+                  </section>
+                </div></div>
+              </section>
+
               <section class="tab-panel" id="brandApplyPagePanel" data-tab-group="brandSettings">
                 <div class="panel">
                   <section class="apply-page-settings-layout" id="applyPageSetting">
@@ -1414,6 +1444,14 @@
         <button class="default-btn small" id="cancelStatusPopoverBtn">取消</button>
         <button class="primary-btn small" id="confirmStatusPopoverBtn">确定</button>
       </div>
+    </div>
+
+    <div class="field-help-popover table-help-floating hidden" id="categoryAliasHelpPopover" role="tooltip">
+      <strong>大类别名的作用</strong>
+      <span>用于替代接口商品名称，作为发票明细中第二个星号后的商品名称。适合接口商品名称为内部编码等不宜直接展示的场景。</span>
+      <span>启用方式：将上方“发票明细项目名称”设为“取商品大类别名”。</span>
+      <span>票面格式：<b>*税收分类简称*大类别名</b></span>
+      <span>例如：接口商品名称为 SKU001，税收分类简称为“服装”，大类别名为“零售服装”，票面显示 <b>*服装*零售服装</b>。</span>
     </div>
 
     <div class="field-help-popover table-help-floating hidden" id="specifiedTaxNoHelpPopover" role="tooltip">
@@ -1763,6 +1801,11 @@
               <span class="field-label">商品大类 <em>*</em></span>
               <input id="ruleCategory" required placeholder="请输入商品大类" />
             </label>
+            <label class="hidden" id="ruleProductNameField">
+              <span class="field-label">商品名称 <em>*</em></span>
+              <input id="ruleProductName" placeholder="请输入用于匹配的商品名称" />
+              <small>订单商品名称包含此名称，且商品大类完全一致时命中。</small>
+            </label>
             <label>
               <span class="field-label">大类别名 <em>*</em></span>
               <input id="ruleAlias" required placeholder="请输入大类别名" />
@@ -1771,6 +1814,7 @@
               <span class="field-label">税收分类编码 <em>*</em></span>
               <input id="ruleTaxCode" required list="taxCodeList" placeholder="请输入税收分类编码" />
               <datalist id="taxCodeList">
+                <option value="DEMO-MEDICINE-001">化学药品制剂</option>
                 <option value="1040201000000000000">服装</option>
                 <option value="1040207000000000000">箱包</option>
                 <option value="3049900000000000000">其他现代服务</option>
@@ -2167,9 +2211,28 @@
 
     <div class="detail-drawer-backdrop" id="detailDrawerBackdrop" aria-hidden="true"></div>
 
+
+    <div class="modal-mask" id="autoInvoiceConfirmModal" aria-hidden="true">
+      <div class="modal fallback-confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="autoInvoiceConfirmTitle">
+        <div class="modal-head"><h2 id="autoInvoiceConfirmTitle"></h2><button class="icon-btn" data-close="autoInvoiceConfirmModal" aria-label="关闭">×</button></div>
+        <div class="modal-body"><p id="autoInvoiceConfirmText"></p></div>
+        <div class="modal-foot"><button class="default-btn" data-close="autoInvoiceConfirmModal">取消</button><button class="primary-btn" id="confirmAutoInvoiceBtn">确认</button></div>
+      </div>
+    </div>
+    <div class="modal-mask drawer-mask" id="autoInvoiceTaxModal" aria-hidden="true">
+      <div class="drawer drawer-wide" role="dialog" aria-modal="true" aria-labelledby="autoInvoiceTaxTitle">
+        <div class="modal-head"><h2 id="autoInvoiceTaxTitle">新增税号单独配置</h2><button class="icon-btn" data-close="autoInvoiceTaxModal" aria-label="关闭">×</button></div>
+        <div class="modal-body"><div class="form-grid drawer-form">
+          <label><span class="field-label">纳税人 <em>*</em></span><input id="autoInvoiceTaxInput" type="search" list="autoInvoiceTaxOptions" autocomplete="off" placeholder="请输入纳税人名称或税号搜索" /><datalist id="autoInvoiceTaxOptions"></datalist><small>选择已开通发票功能的纳税人</small></label>
+          <label><span class="field-label">是否允许自动开票 <em>*</em></span><select id="autoInvoiceTaxAllowed"><option value="allow">允许</option><option value="deny">不允许</option></select></label>
+        </div><p class="field-error" id="autoInvoiceTaxError" role="alert"></p></div>
+        <div class="modal-foot"><button class="default-btn" data-close="autoInvoiceTaxModal">取消</button><button class="primary-btn" id="saveAutoInvoiceTaxBtn">保存</button></div>
+      </div>
+    </div>
     <div class="toast" id="toast" role="status"></div>
-    <script src="./app.js"></script>
-    <script src="./company.js"></script>
+    <script src="./app.js?v=20261020-special-product"></script>
+    <script src="./company.js?v=20260910-customer-batches"></script>
     <script src="./brand-stores.js"></script>
+    <script src="./auto-invoice.js?v=20260910-confirmed-v1"></script>
   </body>
 </html>
