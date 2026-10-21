@@ -3164,6 +3164,7 @@ function openBrandSettings(brandCode, source = state.brandSettingsSource || "bra
   payments = paymentsByBrand.get(brand.code);
   renderPayments();
   window.resetAutoInvoiceView?.();
+  window.resetReportPushView?.();
   document.getElementById("brandSettingsBreadcrumb").textContent = source === "brandDetail"
     ? "品牌管理 / 品牌详情 / 产品管理"
     : "我的客户";

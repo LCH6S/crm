@@ -16,6 +16,87 @@
   --shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
 }
 
+/* Brand report delivery: configuration detail with two sections. */
+.brand-config-tabs { overflow-x: auto; }
+.brand-config-tabs button { flex-shrink: 0; white-space: nowrap; }
+.main:has(#brandSettingsView.active #brandReportPushPanel.active) { display: flex; flex-direction: column; padding-bottom: 20px; }
+#brandSettingsView.active:has(#brandReportPushPanel.active) { display: flex; flex-direction: column; flex: 1; }
+.brand-tab-panels:has(#brandReportPushPanel.active) { flex: 1; }
+#brandReportPushPanel.active { display: flex; flex-direction: column; }
+#brandReportPushPanel .report-push-panel { padding: 24px; margin-bottom: 0; }
+#brandReportPushPanel.active .report-push-panel { flex: 1; }
+.report-push-panel { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+.report-push-section + .report-push-section { margin-top: 40px; padding-top: 24px; border-top: 1px solid #EEEEEE; }
+.report-push-panel .setting-head { align-items: flex-start; margin-bottom: 20px; }
+.report-push-panel .setting-head h2 { font-size: 16px; line-height: 24px; }
+.report-push-panel .setting-head p { color: #595959; font-size: 14px; line-height: 22px; margin-top: 8px; }
+/* Compact summary outside; email editing stays inside the right drawer. */
+.report-push-panel .report-email-setting { margin-bottom: 0; align-items: center; }
+.report-email-setting-actions { display: flex; align-items: center; gap: 16px; }
+.report-email-count { color: #8C8C8C; font-size: 14px; line-height: 22px; white-space: nowrap; }
+.report-email-empty { color: #8C8C8C; margin: 0; }
+/* Semi Card.Meta: compact content with a header action. */
+.report-subscription-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 480px)); gap: 16px; }
+.report-subscription-card { min-width: 0; border: 1px solid var(--semi-color-border); border-radius: var(--semi-radius-medium, 6px); background: var(--semi-color-bg-1, #FFFFFF); overflow: hidden; }
+.report-subscription-content { padding: 20px; }
+.report-subscription-meta { display: flex; align-items: center; gap: 12px; }
+.report-subscription-icon { display: flex; align-items: center; justify-content: center; flex: 0 0 40px; width: 40px; height: 40px; border-radius: var(--semi-radius-medium, 6px); background: var(--semi-color-primary-light-default, #EAF2FF); color: var(--semi-color-primary); }
+.report-subscription-title { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; flex: 1; }
+.report-subscription-title h3 { margin: 0; color: var(--semi-color-text-0); font-size: 16px; line-height: 24px; font-weight: 600; }
+.report-subscription-status { display: inline-flex; align-items: center; min-height: 20px; padding: 0 6px; border-radius: var(--semi-radius-small, 3px); background: var(--semi-color-fill-0); color: var(--semi-color-text-2); font-size: 12px; line-height: 20px; white-space: nowrap; }
+.report-subscription-status.subscribed { color: var(--semi-color-success, #00B42A); background: var(--semi-color-success-light-default, #EAF8F0); }
+.report-subscription-content > p { margin: 16px 0 0; color: var(--semi-color-text-2); font-size: 14px; line-height: 22px; }
+#reportSubscribeBtn { flex-shrink: 0; height: 32px; min-height: 32px; padding: 0 16px; font-size: 14px; border-radius: var(--semi-radius-small, 3px); }
+#reportPushConfirmModal { background: rgba(0,0,0,.50); }
+#reportPushConfirmModal .report-push-confirm { display: flex; flex-direction: column; width: 416px; max-height: calc(100vh - 96px); font-family: "PingFang SC", "Microsoft YaHei", sans-serif; border-radius: 2px; }
+#reportPushConfirmModal .modal-head { flex-shrink: 0; padding: 16px 24px; border-bottom: 1px solid #EEEEEE; }
+#reportPushConfirmModal .modal-head h2 { font-size: 16px; line-height: 24px; margin: 0; }
+#reportPushConfirmModal .modal-body { overflow-y: auto; overscroll-behavior: contain; padding: 24px; gap: 16px; color: #262626; font-size: 14px; line-height: 22px; }
+#reportPushConfirmModal .modal-body p { margin: 0; }
+#reportPushConfirmModal .report-confirm-emails { max-height: 160px; overflow-y: auto; overflow-wrap: anywhere; color: #595959; }
+#reportPushConfirmModal .report-confirm-emails.hidden { display: none; }
+#reportPushConfirmModal .modal-foot { flex-shrink: 0; gap: 16px; padding: 14px 24px; border-top: 1px solid #EEEEEE; }
+#reportPushConfirmModal .modal-foot button { height: 36px; }
+#reportPushConfirmModal .primary-btn { background: #262626; border-color: #262626; color: #FFFFFF; }
+#reportPushConfirmModal .primary-btn:hover { background: #444444; border-color: #444444; }
+
+
+/* Semi SideSheet (small) + ArrayField repeatable-input pattern. */
+#reportEmailModal { background: rgba(0,0,0,.40); }
+#reportEmailModal .report-email-drawer { display: grid; grid-template-rows: 76px minmax(0, 1fr) 72px; width: 448px; height: 100vh; max-height: none; border-radius: 0; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+#reportEmailModal .modal-head { height: 76px; padding: 24px; border-bottom: 0; }
+#reportEmailModal .modal-head h2 { margin: 0; color: var(--semi-color-text-0); font-size: 20px; font-weight: 600; line-height: 28px; }
+#reportEmailModal .modal-head .icon-btn { width: 24px; height: 24px; padding: 0; background: transparent; border: 0; color: var(--semi-color-text-2); }
+#reportEmailModal .modal-head .icon-btn:hover { background: var(--semi-color-fill-0); color: var(--semi-color-text-0); }
+#reportEmailModal .modal-body { display: block; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 24px 24px; color: var(--semi-color-text-0); font-size: 14px; line-height: 22px; }
+.report-email-list-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 4px; }
+.report-email-list-head h3 { margin: 0; font-size: 14px; line-height: 22px; font-weight: 600; }
+#reportEmailDraftCount { color: var(--semi-color-text-2); font-size: 12px; line-height: 18px; }
+#reportEmailHelp { margin: 0 0 16px; color: var(--semi-color-text-2); font-size: 12px; line-height: 18px; }
+.report-email-rows { display: grid; gap: 12px; }
+.report-email-readonly-list { display: grid; gap: 4px; list-style: none; margin: 12px 0 0; padding: 0; }
+.report-email-readonly-list.hidden { display: none; }
+.report-email-readonly-list li { min-height: 22px; color: var(--semi-color-text-0); font-size: 14px; line-height: 22px; overflow-wrap: anywhere; }
+.report-email-readonly-list li.report-email-empty { color: var(--semi-color-text-2); }
+.report-email-row { display: flex; align-items: center; gap: 8px; }
+#reportEmailModal .report-email-row input { flex: 1; min-width: 0; width: 100%; height: 32px; padding: 0 12px; border: 1px solid transparent; border-radius: var(--semi-radius-small, 3px); background: var(--semi-color-fill-0); color: var(--semi-color-text-0); font-family: inherit; font-size: 14px; line-height: 22px; outline: none; box-shadow: none; transition: background .15s, border-color .15s; }
+#reportEmailModal .report-email-row input::placeholder { color: var(--semi-color-text-2); }
+#reportEmailModal .report-email-row input:hover { background: var(--semi-color-fill-1); }
+#reportEmailModal .report-email-row input:focus { border-color: var(--semi-color-primary); background: var(--semi-color-fill-0); box-shadow: none; }
+#reportEmailModal .report-email-row input[aria-invalid="true"] { border-color: var(--semi-color-danger, #F53F3F); background: var(--semi-color-danger-light-default, #FFF2F0); }
+.report-email-remove { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 32px; width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--semi-radius-small, 3px); background: transparent; color: var(--semi-color-text-2); }
+.report-email-remove:hover { color: var(--semi-color-danger, #F53F3F); background: var(--semi-color-danger-light-default, #FFF2F0); }
+.report-email-remove:focus-visible, .report-email-add:focus-visible { outline: 2px solid var(--semi-color-primary); outline-offset: 2px; }
+.report-email-add { display: flex; align-items: center; justify-content: center; gap: 8px; width: calc(100% - 40px); height: 32px; margin: 12px 40px 0 0; padding: 0 12px; border: 0; border-radius: var(--semi-radius-small, 3px); background: var(--semi-color-primary-light-default, #EAF2FF); color: var(--semi-color-primary); font-size: 14px; line-height: 22px; }
+.report-email-add:hover { background: var(--semi-color-primary-light-hover, #DAE8FF); }
+#reportEmailError, .report-email-row-item .field-error { margin: 4px 40px 0 0; color: var(--semi-color-danger, #F53F3F); font-size: 12px; line-height: 18px; overflow-wrap: anywhere; }
+#reportEmailError:not(.hidden) { margin-bottom: 16px; }
+#reportEmailDiscardText { margin: 0; }
+#reportEmailModal .modal-foot { height: 72px; gap: 8px; padding: 20px 24px; border-top: 1px solid var(--semi-color-border); }
+#reportEmailModal .modal-foot button { height: 32px; min-height: 32px; border-radius: var(--semi-radius-small, 3px); padding: 0 16px; font-size: 14px; }
+#reportEmailModal .primary-btn { background: var(--semi-color-primary); border-color: transparent; color: #FFFFFF; }
+#reportEmailModal .primary-btn:hover { background: var(--semi-color-primary-hover, #0055D6); border-color: transparent; }
+
 * {
   box-sizing: border-box;
 }

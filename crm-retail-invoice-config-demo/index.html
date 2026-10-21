@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>电子发票设置</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="./styles.css?v=20261020-special-product" />
+    <link rel="stylesheet" href="./styles.css?v=20261022-report-management" />
   </head>
   <body>
     <header class="topbar">
@@ -872,6 +872,7 @@
             <button data-tab="brandEntryPanel">开票功能设置</button>
             <button data-tab="brandAutoInvoicePanel">自动开票设置</button>
             <button data-tab="brandApplyPagePanel">开票申请页设置</button>
+            <button data-tab="brandReportPushPanel">报表管理</button>
             <button data-tab="brandDeveloperPanel">开发设置</button>
           </div>
 
@@ -1382,6 +1383,35 @@
                             <div class="phone-description-resource" id="phoneInvoiceDescriptionResource"></div>
                           </div>
                     </aside>
+                  </section>
+                </div>
+              </section>
+
+              <section class="tab-panel" id="brandReportPushPanel" data-tab-group="brandSettings">
+                <div class="panel report-push-panel">
+                  <section class="report-push-section" aria-labelledby="reportEmailHeading">
+                    <div class="setting-head report-email-setting">
+                      <div><h2 id="reportEmailHeading">报表接收邮箱</h2><p>设置本品牌已订阅报表的统一接收邮箱。</p></div>
+                      <div class="setting-actions report-email-setting-actions">
+                        <span class="report-email-count" id="reportEmailCount">共 0 个邮箱</span>
+                        <button class="default-btn small" id="editReportEmailsBtn" type="button">设置</button>
+                      </div>
+                    </div>
+                  </section>
+                  <section class="report-push-section" aria-labelledby="reportSubscriptionHeading">
+                    <div class="setting-head"><div><h2 id="reportSubscriptionHeading">订阅报表</h2><p>订阅后，系统将按推送周期生成报表并发送邮件。</p></div></div>
+                    <div class="report-subscription-grid">
+                      <article class="report-subscription-card" aria-labelledby="monthlyReportName">
+                        <div class="report-subscription-content">
+                          <div class="report-subscription-meta">
+                            <span class="report-subscription-icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8l-5-5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 3v5h5M8.5 12h7M8.5 16h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                            <div class="report-subscription-title"><h3 id="monthlyReportName">月度已开票订单报表</h3><span class="report-subscription-status" id="reportSubscriptionStatus" role="status">未订阅</span></div>
+                            <button class="primary-btn small" id="reportSubscribeBtn" type="button">订阅</button>
+                          </div>
+                          <p>包含本品牌当月已开票订单以及关联发票。帮助财务完成月度汇总申报。</p>
+                        </div>
+                      </article>
+                    </div>
                   </section>
                 </div>
               </section>
@@ -2229,10 +2259,37 @@
         <div class="modal-foot"><button class="default-btn" data-close="autoInvoiceTaxModal">取消</button><button class="primary-btn" id="saveAutoInvoiceTaxBtn">保存</button></div>
       </div>
     </div>
+    <div class="modal-mask drawer-mask" id="reportEmailModal" aria-hidden="true">
+      <div class="drawer report-email-drawer" id="reportEmailDrawer" role="dialog" aria-modal="true" aria-labelledby="reportEmailModalTitle" aria-describedby="reportEmailHelp">
+        <div class="modal-head"><h2 id="reportEmailModalTitle">设置接收邮箱</h2><button class="icon-btn" id="closeReportEmailModalBtn" type="button" aria-label="关闭">×</button></div>
+        <div class="modal-body">
+          <div id="reportEmailForm">
+            <div class="report-email-list-head"><h3>接收邮箱</h3><span id="reportEmailDraftCount"></span></div>
+            <p class="field-error hidden" id="reportEmailError" role="alert"></p>
+            <ul class="report-email-readonly-list" id="reportEmailReadonlyList" aria-label="已设置的接收邮箱"></ul>
+            <div class="hidden" id="reportEmailEditor">
+              <p class="report-email-help" id="reportEmailHelp">每行填写一个邮箱。</p>
+              <div class="report-email-rows" id="reportEmailRows"></div>
+              <button class="report-email-add" id="addReportEmailBtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v6M5 8h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>添加邮箱</button>
+            </div>
+          </div>
+          <p class="hidden" id="reportEmailDiscardText">接收邮箱的修改尚未保存，放弃后将保留原有配置。</p>
+        </div>
+        <div class="modal-foot"><button class="default-btn" id="cancelReportEmailModalBtn" type="button">关闭</button><button class="primary-btn" id="saveReportEmailsBtn" type="button">编辑</button></div>
+      </div>
+    </div>
+    <div class="modal-mask" id="reportPushConfirmModal" aria-hidden="true">
+      <div class="modal report-push-confirm" role="alertdialog" aria-modal="true" aria-labelledby="reportPushConfirmTitle" aria-describedby="reportPushConfirmText">
+        <div class="modal-head"><h2 id="reportPushConfirmTitle">订阅报表</h2><button class="icon-btn" id="closeReportPushConfirmBtn" type="button" aria-label="关闭">×</button></div>
+        <div class="modal-body"><p id="reportPushConfirmText"></p><p class="report-confirm-emails" id="reportPushConfirmEmails"></p><p class="field-error hidden" id="reportPushConfirmError" role="alert"></p></div>
+        <div class="modal-foot"><button class="default-btn" id="cancelReportPushConfirmBtn" type="button">取消</button><button class="primary-btn" id="confirmReportPushBtn" type="button">确认订阅</button></div>
+      </div>
+    </div>
     <div class="toast" id="toast" role="status"></div>
-    <script src="./app.js?v=20261020-special-product"></script>
+    <script src="./app.js?v=20261022-report-management"></script>
     <script src="./company.js?v=20260910-customer-batches"></script>
     <script src="./brand-stores.js"></script>
     <script src="./auto-invoice.js?v=20260910-confirmed-v1"></script>
+    <script src="./report-push.js?v=20261022-report-management"></script>
   </body>
 </html>
