@@ -2045,7 +2045,7 @@ function renderRules() {
   document.getElementById("ruleNameFilter").classList.toggle("hidden", !isSpecial);
   document.getElementById("categoryRulePanel").classList.toggle("special-rule-panel", isSpecial);
   document.getElementById("ruleMatchingDescription").textContent = isSpecial
-    ? "适用于同一商品大类下，不同商品需按不同税率开票的场景。配置后，系统优先匹配特殊商品规则：商品大类须完全一致（精确匹配），订单商品名称须包含配置的商品名称（模糊匹配）；未命中时，再按商品大类规则匹配。"
+    ? "适用于同一商品大类下，不同商品需按不同税率开票的场景。特殊规则优先：商品大类精确一致，订单商品名称须以配置名称开头（左包含匹配）。命中1条时使用，未命中时继续商品大类规则；命中多条则报错，不继续匹配。"
     : "按品牌维度维护订单商品行的商品大类对应的开票税收分类编码";
   document.getElementById("ruleTableHead").innerHTML = `<tr><th>商品大类</th>${isSpecial ? "<th>商品名称</th>" : ""}<th><span class="table-header-with-help">大类别名<button class="field-help-button" id="categoryAliasHelpBtn" type="button" aria-label="查看大类别名说明" aria-describedby="categoryAliasHelpPopover" aria-expanded="false">?</button></span></th><th>税收分类编码</th><th>税收分类简称</th><th>税率</th><th>优惠政策</th>${isSpecial ? "" : '<th><span class="table-header-with-help">指定开票税号<button class="field-help-button" id="specifiedTaxNoHelpBtn" type="button" aria-label="查看指定开票税号说明" aria-expanded="false" aria-controls="specifiedTaxNoHelpPopover">?</button></span></th>'}<th>更新时间</th><th class="action-col">操作</th></tr>`;
   const aliasHelpButton = document.getElementById("categoryAliasHelpBtn");
@@ -2204,7 +2204,7 @@ function getRuleBatchMeta(mode = state.ruleBatchMode) {
   const map = {
     special: {
       title: "批量导入特殊商品匹配规则",
-      hint: "商品大类精确匹配，订单商品名称包含配置名称时命中。同一品牌内商品大类与商品名称组合不可重复；不配置指定开票税号。",
+      hint: "商品大类精确匹配，订单商品名称以配置名称开头（左包含）。命中1条时使用，0条继续大类规则，多条直接报错。同一品牌内大类与名称组合不可重复，不配置指定开票税号。",
       fileName: "特殊商品匹配规则导入模板.xlsx",
       sampleFileName: "特殊商品匹配规则导入示例.xlsx",
       fields: ["品牌编号", "商品大类", "商品名称", "大类别名", "税收分类编码", "税率", "优惠政策（选填）"],

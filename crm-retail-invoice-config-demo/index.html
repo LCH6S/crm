@@ -1834,7 +1834,7 @@
             <label class="hidden" id="ruleProductNameField">
               <span class="field-label">商品名称 <em>*</em></span>
               <input id="ruleProductName" placeholder="请输入用于匹配的商品名称" />
-              <small>订单商品名称包含此名称，且商品大类完全一致时命中。</small>
+              <small>商品大类须完全一致，订单名称须从首字起与此名称一致（左包含）；命中多条时将报错。</small>
             </label>
             <label>
               <span class="field-label">大类别名 <em>*</em></span>
@@ -2286,7 +2286,7 @@
       </div>
     </div>
     <div class="toast" id="toast" role="status"></div>
-    <script src="./app.js?v=20261022-report-management"></script>
+    <script src="./app.js?v=20261022-name-prefix"></script>
     <script src="./company.js?v=20260910-customer-batches"></script>
     <script src="./brand-stores.js"></script>
     <script src="./auto-invoice.js?v=20260910-confirmed-v1"></script>
