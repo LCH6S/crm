@@ -48,6 +48,7 @@
 .report-subscription-content > p { margin: 16px 0 0; color: var(--semi-color-text-2); font-size: 14px; line-height: 22px; }
 #reportSubscribeBtn { flex-shrink: 0; height: 32px; min-height: 32px; padding: 0 16px; font-size: 14px; border-radius: var(--semi-radius-small, 3px); }
 #reportPushConfirmModal { background: rgba(0,0,0,.50); }
+#reportPushConfirmModal { z-index: 150; }
 #reportPushConfirmModal .report-push-confirm { display: flex; flex-direction: column; width: 416px; max-height: calc(100vh - 96px); font-family: "PingFang SC", "Microsoft YaHei", sans-serif; border-radius: 2px; }
 #reportPushConfirmModal .modal-head { flex-shrink: 0; padding: 16px 24px; border-bottom: 1px solid #EEEEEE; }
 #reportPushConfirmModal .modal-head h2 { font-size: 16px; line-height: 24px; margin: 0; }
@@ -88,7 +89,8 @@
 .report-email-remove:hover { color: var(--semi-color-danger, #F53F3F); background: var(--semi-color-danger-light-default, #FFF2F0); }
 .report-email-remove:focus-visible, .report-email-add:focus-visible { outline: 2px solid var(--semi-color-primary); outline-offset: 2px; }
 .report-email-add { display: flex; align-items: center; justify-content: center; gap: 8px; width: calc(100% - 40px); height: 32px; margin: 12px 40px 0 0; padding: 0 12px; border: 0; border-radius: var(--semi-radius-small, 3px); background: var(--semi-color-primary-light-default, #EAF2FF); color: var(--semi-color-primary); font-size: 14px; line-height: 22px; }
-.report-email-add:hover { background: var(--semi-color-primary-light-hover, #DAE8FF); }
+.report-email-add:hover:not(:disabled) { background: var(--semi-color-primary-light-hover, #DAE8FF); }
+.report-email-add:disabled { background: var(--semi-color-fill-0, #F5F6F7); color: var(--semi-color-text-3, #A7ABB0); cursor: not-allowed; }
 #reportEmailError, .report-email-row-item .field-error { margin: 4px 40px 0 0; color: var(--semi-color-danger, #F53F3F); font-size: 12px; line-height: 18px; overflow-wrap: anywhere; }
 #reportEmailError:not(.hidden) { margin-bottom: 16px; }
 #reportEmailDiscardText { margin: 0; }

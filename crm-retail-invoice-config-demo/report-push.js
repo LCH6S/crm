@@ -1,6 +1,7 @@
 // Local interaction prototype only; no report jobs or email requests are sent.
 (() => {
   const storageKey = "crm-brand-report-push-v1";
+  const maxEmails = 15;
   const byId = (id) => document.getElementById(id);
   const emailMask = byId("reportEmailModal");
   const confirmMask = byId("reportPushConfirmModal");
@@ -12,10 +13,11 @@
   let restoreFocus = null;
   let background = [];
   let previousOverflow = "";
+  let maskWasInert = false;
+  const dialogStack = [];
   let draft = [];
   let originalRows = "";
   let editingBrand = null;
-  let discarding = false;
   let emailEditing = false;
   let discardIntent = "close";
   const validEmail = (value) => value.length <= 254 && /^[^\s@]+@[^\s@.]+(?:\.[^\s@.]+)+$/.test(value);
@@ -54,8 +56,12 @@
       }
     } else if (message) byId("reportEmailError").scrollIntoView({ block: "nearest" });
   }
+  function updateDraftState() {
+    byId("reportEmailDraftCount").textContent = `已填写 ${draft.filter((email) => email.trim()).length} / ${maxEmails} 个`;
+    byId("addReportEmailBtn").disabled = draft.length >= maxEmails;
+  }
   function renderRows(focusIndex = null) {
-    byId("reportEmailDraftCount").textContent = `已填写 ${draft.filter((email) => email.trim()).length} 个`;
+    updateDraftState();
     byId("reportEmailRows").innerHTML = draft.map((email, index) => `<div class="report-email-row-item">
       <div class="report-email-row">
         <input id="reportEmailRow${index}" type="text" inputmode="email" autocomplete="off" spellcheck="false" placeholder="请输入接收邮箱" value="${escapeHtml(email)}" data-email-row="${index}" aria-label="接收邮箱 ${index + 1}" aria-describedby="reportEmailRowError${index}" />
@@ -76,11 +82,16 @@
     button.className = config.subscribed ? "default-btn small" : "primary-btn small";
     button.disabled = false;
   }
-  function openDialog(mask, initialFocus) {
-    if (activeMask) return;
+  function openDialog(mask, initialFocus, overDrawer = false) {
+    if (activeMask) {
+      if (!overDrawer || activeMask !== emailMask || mask !== confirmMask) return;
+      dialogStack.push({ activeMask, restoreFocus, background, previousOverflow, maskWasInert });
+    }
     activeMask = mask;
     restoreFocus = document.activeElement;
     previousOverflow = document.body.style.overflow;
+    maskWasInert = mask.inert;
+    mask.inert = false;
     document.body.style.overflow = "hidden";
     background = [...document.body.children]
       .filter((node) => node !== mask && !["SCRIPT", "STYLE"].includes(node.tagName))
@@ -91,27 +102,28 @@
   }
   function closeDialog() {
     if (!activeMask) return;
+    const focusTarget = restoreFocus;
     closeModal(activeMask.id);
-    activeMask = null;
+    activeMask.inert = maskWasInert;
     pending = null;
-    editingBrand = null;
     background.forEach(([node, wasInert]) => { node.inert = wasInert; });
-    background = [];
     document.body.style.overflow = previousOverflow;
-    if (restoreFocus?.isConnected) restoreFocus.focus({ preventScroll: true });
+    const parent = dialogStack.pop();
+    if (parent) {
+      ({ activeMask, restoreFocus, background, previousOverflow, maskWasInert } = parent);
+    } else {
+      activeMask = null;
+      editingBrand = null;
+      background = [];
+    }
+    if (focusTarget?.isConnected) focusTarget.focus({ preventScroll: true });
   }
-  function setDiscarding(value) {
-    discarding = value;
-    byId("reportEmailForm").classList.toggle("hidden", value);
-    byId("reportEmailDiscardText").classList.toggle("hidden", !value);
-    byId("reportEmailModalTitle").textContent = value ? "放弃邮箱修改？" : "设置接收邮箱";
-    byId("reportEmailDrawer").setAttribute("role", value ? "alertdialog" : "dialog");
-    byId("reportEmailDrawer").setAttribute("aria-describedby", value ? "reportEmailDiscardText" : emailEditing ? "reportEmailHelp" : "reportEmailReadonlyList");
-    byId("cancelReportEmailModalBtn").textContent = value ? "继续编辑" : emailEditing ? "取消" : "关闭";
-    byId("saveReportEmailsBtn").textContent = value ? "放弃修改" : emailEditing ? "保存" : "编辑";
+  function updateEmailDrawer() {
+    byId("reportEmailDrawer").setAttribute("aria-describedby", emailEditing ? "reportEmailHelp" : "reportEmailReadonlyList");
+    byId("cancelReportEmailModalBtn").textContent = emailEditing ? "取消" : "关闭";
+    byId("saveReportEmailsBtn").textContent = emailEditing ? "保存" : "编辑";
     if (activeMask === emailMask) {
-      if (value) byId("cancelReportEmailModalBtn").focus();
-      else if (emailEditing) focusEmailEditor();
+      if (emailEditing) focusEmailEditor();
       else byId("saveReportEmailsBtn").focus();
     }
   }
@@ -128,7 +140,7 @@
     byId("reportEmailReadonlyList").classList.remove("hidden");
     byId("reportEmailEditor").classList.add("hidden");
     byId("reportEmailRows").innerHTML = "";
-    setDiscarding(false);
+    updateEmailDrawer();
     byId("reportEmailModal").querySelector(".modal-body").scrollTop = 0;
   }
   function beginEmailEditing() {
@@ -140,26 +152,33 @@
     byId("reportEmailReadonlyList").classList.add("hidden");
     byId("reportEmailEditor").classList.remove("hidden");
     renderRows();
-    setDiscarding(false);
+    updateEmailDrawer();
   }
-  function openEmailEditor(message = "") {
+  function openEmailEditor(startEditing = false) {
     if (activeMask) return;
     showEmailReadonly();
     openDialog(emailMask, byId("saveReportEmailsBtn"));
-    if (message) showError(message);
+    if (startEditing) beginEmailEditing();
   }
   function requestCloseEmailEditor(intent = "close") {
     if (!emailEditing) { closeDialog(); return; }
-    if (discarding) { setDiscarding(false); return; }
-    if (JSON.stringify(draft) !== originalRows) { discardIntent = intent; setDiscarding(true); return; }
+    if (JSON.stringify(draft) !== originalRows) {
+      discardIntent = intent;
+      pending = { brand: state.currentBrandCode, action: "discard-emails" };
+      byId("reportPushConfirmTitle").textContent = "放弃邮箱修改？";
+      byId("reportPushConfirmText").textContent = "接收邮箱的修改尚未保存，放弃后将保留原有配置。";
+      byId("reportPushConfirmEmails").textContent = "";
+      byId("reportPushConfirmEmails").classList.add("hidden");
+      byId("cancelReportPushConfirmBtn").textContent = "继续编辑";
+      byId("confirmReportPushBtn").textContent = "放弃修改";
+      byId("reportPushConfirmError").classList.add("hidden");
+      openDialog(confirmMask, byId("cancelReportPushConfirmBtn"), true);
+      return;
+    }
     if (intent === "view") showEmailReadonly(); else closeDialog();
   }
   function saveEmails() {
     if (!emailEditing) { beginEmailEditing(); return; }
-    if (discarding) {
-      if (discardIntent === "view") showEmailReadonly(); else closeDialog();
-      return;
-    }
     if (editingBrand !== state.currentBrandCode) { closeDialog(); return; }
     showError();
     const cleaned = [];
@@ -173,6 +192,10 @@
       if (seen.has(key)) { showError(`接收邮箱重复：${email}`, index); return; }
       seen.add(key); cleaned.push(email);
     }
+    if (cleaned.length > maxEmails) {
+      showError(`接收邮箱最多设置 ${maxEmails} 个，请删除多余邮箱后保存。`);
+      return;
+    }
     if (saved().subscribed && !cleaned.length) {
       showError("存在已订阅报表，至少需要保留一个有效接收邮箱。请先取消订阅，再清空名单。", draft.length ? 0 : null);
       return;
@@ -183,10 +206,23 @@
     }
     showEmailReadonly(); render(); showToast("已保存报表接收邮箱");
   }
+  function openEmailSetupPrompt() {
+    if (activeMask) return;
+    pending = { brand: state.currentBrandCode, action: "set-emails" };
+    byId("reportPushConfirmTitle").textContent = "请先设置接收邮箱";
+    byId("reportPushConfirmText").textContent = "订阅报表前，请先设置至少一个有效的接收邮箱。";
+    byId("reportPushConfirmEmails").textContent = "";
+    byId("reportPushConfirmEmails").classList.add("hidden");
+    byId("cancelReportPushConfirmBtn").textContent = "取消";
+    byId("confirmReportPushBtn").textContent = "立即设置";
+    byId("reportPushConfirmError").classList.add("hidden");
+    openDialog(confirmMask, byId("cancelReportPushConfirmBtn"));
+  }
   function openSubscriptionConfirmation() {
+    if (activeMask) return;
     const config = saved();
     if (!config.subscribed && !config.emails.length) {
-      openEmailEditor("请先配置并保存至少一个有效接收邮箱，再订阅报表。");
+      openEmailSetupPrompt();
       return;
     }
     const subscribe = !config.subscribed;
@@ -209,12 +245,13 @@
   byId("cancelReportEmailModalBtn").addEventListener("click", () => requestCloseEmailEditor(emailEditing ? "view" : "close"));
   byId("saveReportEmailsBtn").addEventListener("click", saveEmails);
   byId("addReportEmailBtn").addEventListener("click", () => {
+    if (draft.length >= maxEmails) return;
     draft.push(""); showError(); renderRows(draft.length - 1);
   });
   byId("reportEmailRows").addEventListener("input", (event) => {
     if (!event.target.matches("[data-email-row]")) return;
     draft[Number(event.target.dataset.emailRow)] = event.target.value;
-    byId("reportEmailDraftCount").textContent = `已填写 ${draft.filter((email) => email.trim()).length} 个`;
+    updateDraftState();
     showError();
   });
   byId("reportEmailRows").addEventListener("click", (event) => {
@@ -234,9 +271,19 @@
   ["closeReportPushConfirmBtn", "cancelReportPushConfirmBtn"].forEach((id) => byId(id).addEventListener("click", closeDialog));
   byId("confirmReportPushBtn").addEventListener("click", () => {
     if (!pending || pending.brand !== state.currentBrandCode) { closeDialog(); return; }
+    if (pending.action === "set-emails") {
+      closeDialog();
+      openEmailEditor(true);
+      return;
+    }
+    if (pending.action === "discard-emails") {
+      closeDialog();
+      if (discardIntent === "view") showEmailReadonly(); else closeDialog();
+      return;
+    }
     const config = saved();
     const subscribe = pending.subscribe;
-    if (subscribe && !config.emails.length) { closeDialog(); openEmailEditor("请先配置至少一个有效接收邮箱。"); return; }
+    if (subscribe && !config.emails.length) { closeDialog(); openEmailSetupPrompt(); return; }
     if (!persist({ ...config, subscribed: subscribe })) {
       byId("reportPushConfirmError").textContent = "订阅设置保存失败，请检查浏览器存储权限后重试。";
       byId("reportPushConfirmError").classList.remove("hidden");
@@ -258,7 +305,7 @@
       else if (!event.shiftKey && (index === controls.length - 1 || index < 0)) { event.preventDefault(); controls[0].focus(); }
     });
   });
-  window.resetReportPushView = () => { closeDialog(); draft = []; emailEditing = false; render(); };
+  window.resetReportPushView = () => { while (activeMask) closeDialog(); draft = []; emailEditing = false; render(); };
   render();
   if (["#report-push", "#report-management"].includes(window.location.hash)) {
     openBrandSettings(state.currentBrandCode);

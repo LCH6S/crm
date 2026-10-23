@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>电子发票设置</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="./styles.css?v=20261022-report-management" />
+    <link rel="stylesheet" href="./styles.css?v=20261023-email-confirm-limit" />
   </head>
   <body>
     <header class="topbar">
@@ -2268,12 +2268,11 @@
             <p class="field-error hidden" id="reportEmailError" role="alert"></p>
             <ul class="report-email-readonly-list" id="reportEmailReadonlyList" aria-label="已设置的接收邮箱"></ul>
             <div class="hidden" id="reportEmailEditor">
-              <p class="report-email-help" id="reportEmailHelp">每行填写一个邮箱。</p>
+              <p class="report-email-help" id="reportEmailHelp">每行填写一个邮箱，最多设置 15 个。</p>
               <div class="report-email-rows" id="reportEmailRows"></div>
               <button class="report-email-add" id="addReportEmailBtn" type="button"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v6M5 8h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>添加邮箱</button>
             </div>
           </div>
-          <p class="hidden" id="reportEmailDiscardText">接收邮箱的修改尚未保存，放弃后将保留原有配置。</p>
         </div>
         <div class="modal-foot"><button class="default-btn" id="cancelReportEmailModalBtn" type="button">关闭</button><button class="primary-btn" id="saveReportEmailsBtn" type="button">编辑</button></div>
       </div>
@@ -2290,6 +2289,6 @@
     <script src="./company.js?v=20260910-customer-batches"></script>
     <script src="./brand-stores.js"></script>
     <script src="./auto-invoice.js?v=20260910-confirmed-v1"></script>
-    <script src="./report-push.js?v=20261022-report-management"></script>
+    <script src="./report-push.js?v=20261023-email-confirm-limit"></script>
   </body>
 </html>
