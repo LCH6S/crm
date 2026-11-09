@@ -2327,7 +2327,7 @@ function mountCrmMetaPosSettings(root, brand) {
 
   function initializePosImageSetting(row, getSavedImage, saveImage, {
   title, defaultName = '', configuredName, help, spec, deleteMessage, renderPreview,
-  previewTitle = 'POS 效果预览', showDefaultPreview = true,
+  previewTitle = 'POS 效果预览',
 }) {
   const currentName = row.querySelector('[data-image-current-name]');
   const settingsButton = row.querySelector('[data-image-settings]');
@@ -2348,11 +2348,8 @@ function mountCrmMetaPosSettings(root, brand) {
     else image.removeAttribute('src');
     active.draftStatus.hidden = Boolean(renderPreview) || !active.draft;
     if (renderPreview) {
-      const showPreview = Boolean(picture || showDefaultPreview);
-      active.preview.parentElement.hidden = !showPreview;
-      active.content.classList.toggle('pos-image-dialog-with-preview', showPreview);
-      if (active.previewedImage !== picture || !showPreview) {
-        active.preview.innerHTML = showPreview ? renderPreview(picture?.src) : '';
+      if (active.previewedImage !== picture) {
+        active.preview.innerHTML = renderPreview(picture?.src);
         active.previewedImage = picture;
       }
       active.previewState.textContent = active.draft ? '待保存' : currentName.textContent;
@@ -2391,9 +2388,11 @@ function mountCrmMetaPosSettings(root, brand) {
       save: dialogFoot.querySelector('[data-logo-dialog-action="save"]'),
     };
     if (renderPreview) {
+      content.classList.add('pos-image-dialog-with-preview');
       const panel = modal.preview.parentElement;
       panel.setAttribute('aria-label', previewTitle);
       panel.querySelector('[data-image-preview-title]').textContent = previewTitle;
+      panel.hidden = false;
     }
     const uploadInput = content.querySelector('[data-image-input]');
     active = modal;
@@ -2630,12 +2629,14 @@ root.addEventListener('crm-meta-pos-leave',()=>{
 });
 
 function receiptLogoPreviewHtml(src) {
+  const customLogo = src ? `
+    <div class="pos-receipt-preview-logo">
+      <img src="${escapeHtml(src)}" alt="品牌 Logo">
+    </div>` : '';
   return `
     <div class="pos-receipt-preview-paper">
       <img class="pos-receipt-preview-sample" src="${receiptPreviewSrc}" alt="示例小票" width="720" height="1228">
-      <div class="pos-receipt-preview-logo">
-        <img src="${escapeHtml(src)}" alt="品牌 Logo">
-      </div>
+      ${customLogo}
     </div>`;
 }
 
@@ -2658,7 +2659,6 @@ function initializeExtraPosSettings(section) {
       spec: '图片要求待定',
       deleteMessage: '删除后将恢复打印收钱吧标准 Logo，确认删除？',
       previewTitle: '小票预览',
-      showDefaultPreview: false,
       renderPreview: receiptLogoPreviewHtml,
     },
   ) : null;
