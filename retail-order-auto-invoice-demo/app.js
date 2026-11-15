@@ -439,6 +439,7 @@ function ensureStoreInvoiceSetting(store) {
   setting.brandCode = store.brandCode;
   setting.name = store.name;
   setting.code = store.storeNo;
+  window.ManualInvoiceConfig?.restoreStore(setting);
   return setting;
 }
 
@@ -1734,6 +1735,7 @@ function backToCustomerBrandList() {
 }
 
 function renderStores() {
+  window.ManualInvoiceConfig?.sync(getInvoiceStores());
   const nameKeyword = state.storeNameKeyword.trim().toLowerCase();
   const codeKeyword = state.storeCodeKeyword.trim().toLowerCase();
   const rows = getInvoiceStores().filter((item) => {
@@ -1762,8 +1764,9 @@ function renderStores() {
           <td>${companyCell}</td>
           <td>${escapeHtml(company?.uscc || "-")}</td>
           <td>${status}</td>
+          <td>${window.ManualInvoiceConfig?.cell(item)||'<span class="tag gray">未开启</span>'}</td>
           <td>${escapeHtml(item.updated)}</td>
-          <td><div class="store-invoice-actions"><button class="link-btn" data-store-invoice-company="${item.id}">${company ? "变更主体" : "设置主体"}</button>${statusActionButton}</div></td>
+          <td><div class="store-invoice-actions"><button class="link-btn" data-store-invoice-company="${item.id}">${company ? "变更主体" : "设置主体"}</button>${statusActionButton}<button class="link-btn" data-manual-store="${item.id}">手动开票设置</button></div></td>
         </tr>
       `;
     })

@@ -6,7 +6,8 @@
     <title>电子发票设置</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="./styles.css?v=20260910-heading-v1" />
-  </head>
+  <link rel="stylesheet" href="./manual-invoice.css"/>
+</head>
   <body>
     <header class="topbar">
       <div class="platform-brand">
@@ -902,6 +903,7 @@
                         <th>默认开票公司</th>
                         <th>默认开票税号</th>
                         <th>开票状态</th>
+                        <th>门店手动开票</th>
                         <th>更新时间</th>
                         <th class="action-col">操作</th>
                       </tr>
@@ -2208,9 +2210,10 @@
       </div>
     </div>
     <div class="toast" id="toast" role="status"></div>
-    <script src="./app.js?v=20260910-customer-batches"></script>
+    <script src="./app.js?v=20261116-manual-config"></script>
     <script src="./company.js?v=20260910-customer-batches"></script>
     <script src="./brand-stores.js"></script>
     <script src="./auto-invoice.js?v=20260910-confirmed-v1"></script>
-  </body>
+  <script src="./manual-invoice.js?v=20261116-manual-config"></script>
+</body>
 </html>
