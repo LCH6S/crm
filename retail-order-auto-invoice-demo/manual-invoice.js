@@ -1,6 +1,7 @@
 // Local Demo contract shared with the POS preview. No production configuration API is called.
 (() => {
-  const KEY='sqb-manual-invoice-config-v1', esc=escapeHtml, restored=new Set();
+  const ownerURL=window.parent===window?location.href:window.parent.location.href;
+  const KEY='crm-store-manual-invoice-config-v1:'+new URL('.',ownerURL).pathname, esc=escapeHtml, restored=new Set();
   const read=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{version:1,brands:{},posEntries:{}};}catch{return {version:1,brands:{},posEntries:{}};}};
   const write=db=>{localStorage.setItem(KEY,JSON.stringify(db));window.dispatchEvent(new Event('manual-invoice-config'));};
   const brand=()=>state.currentBrandCode, now=()=>new Date().toLocaleString('sv-SE',{timeZone:'Asia/Shanghai'}).slice(0,16);
@@ -34,6 +35,6 @@
   mask.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close();}if(e.key==='Tab'){const all=[...mask.querySelectorAll('button,input,select')].filter(e=>!e.disabled&&e.getClientRects().length);if(e.shiftKey&&document.activeElement===all[0]){e.preventDefault();all.at(-1).focus();}else if(!e.shiftKey&&document.activeElement===all.at(-1)){e.preventDefault();all[0].focus();}}});
   document.addEventListener('click',e=>{const btn=e.target.closest('[data-manual-store]');if(btn)open(btn.dataset.manualStore);});
   window.addEventListener('storage',e=>{if(e.key===KEY){restored.clear();renderStores();}});
-  window.ManualInvoiceConfig={restoreStore,sync,cell,open};for(const s of storeInvoiceSettings.values())restoreStore(s);renderStores();
+  window.ManualInvoiceConfig={storageKey:KEY,restoreStore,sync,cell,open};if(window.parent===window){for(const s of storeInvoiceSettings.values())restoreStore(s);renderStores();}
   if(location.hash==='#manual-invoice'){openCustomerBrandDetail(brands[0].code,'management');openBrandSettings(brands[0].code,'brandDetail');document.querySelector('[data-tab="brandStorePanel"]').click();}
 })();

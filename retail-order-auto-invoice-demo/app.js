@@ -423,7 +423,7 @@ function getCurrentBrandDetail() {
 const storeInvoiceSettings = new Map();
 
 function ensureStoreInvoiceSetting(store) {
-  if (!storeInvoiceSettings.has(store.id)) {
+  if (!storeInvoiceSettings.has(store.id) || storeInvoiceSettings.get(store.id).brandCode !== store.brandCode) {
     storeInvoiceSettings.set(store.id, {
       id: store.id,
       brandCode: store.brandCode,
