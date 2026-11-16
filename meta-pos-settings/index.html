@@ -5065,6 +5065,17 @@ html { min-width:0; height:100%; overflow:hidden; }
   </div>
 </section>
 
+<section class="crm-setting-section" data-pos-setting="invoice-entry" aria-labelledby="posInvoiceTitle">
+  <div class="app-setting-header"><h3 id="posInvoiceTitle">电子发票入口设置</h3></div>
+  <div class="pos-setting-fields">
+    <div class="pos-setting-field">
+      <span id="posAppInvoiceLabel">电子发票入口</span>
+      <button type="button" class="pos-switch" role="switch" id="posAppInvoice" name="enabled" data-on="on" data-off="off" data-default="on" aria-checked="true" aria-labelledby="posAppInvoiceLabel" data-confirm-name="电子发票入口"></button>
+    </div>
+    <p class="pos-setting-error" data-pos-error role="alert" hidden></p>
+  </div>
+</section>
+
 <section class="crm-setting-section" data-pos-setting="apps" aria-labelledby="posAppsTitle" aria-describedby="posAppsIntro">
   <div class="app-setting-header">
     <h3 id="posAppsTitle">H5 应用设置</h3>
@@ -5092,7 +5103,6 @@ html { min-width:0; height:100%; overflow:hidden; }
       </div>
       <button type="button" class="pos-switch" role="switch" id="posAppWechat" name="wechatShop" data-on="on" data-off="off" data-default="off" aria-checked="false" aria-labelledby="posAppWechatLabel" aria-describedby="posAppWechatHelp" data-confirm-name="微信小店入口"></button>
     </div>
-    <div class="pos-setting-field"><div><span id="posAppInvoiceLabel">电子发票</span></div><button type="button" class="pos-switch" role="switch" id="posAppInvoice" name="invoice" data-on="on" data-off="off" data-default="on" aria-checked="true" aria-labelledby="posAppInvoiceLabel" data-confirm-name="电子发票入口"></button></div>
   </div>
   <p class="pos-setting-error" data-pos-error role="alert" hidden></p>
 </section>
@@ -5770,6 +5780,14 @@ function initializeExtraPosSettings(section) {
     }
     const storedValues = stored?.values && typeof stored.values === 'object' && !Array.isArray(stored.values)
       ? stored.values : {};
+    // Retain the former H5 switch value until this independent setting is saved.
+    if (section.dataset.posSetting === 'invoice-entry' && loadedValue === null) {
+      try {
+        const legacy = JSON.parse(localStorage.getItem(`crm-meta-pos-settings:${brand.customerNo}:${brand.no}:apps`));
+        const enabled = legacy?.values?.invoice;
+        if (['on', 'off'].includes(enabled)) storedValues.enabled = enabled;
+      } catch {}
+    }
     const values = Object.fromEntries(fields.map(field => {
       const storedValue = storedValues[field.name];
       if (field.matches('[role="switch"]')) {
