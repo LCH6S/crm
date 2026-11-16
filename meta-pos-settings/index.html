@@ -4884,6 +4884,8 @@ html { min-width:0; height:100%; overflow:hidden; }
   .pos-picture { justify-content:flex-start; }
 }
 
+.pos-invoice-entry-row{grid-template-columns:minmax(0,1fr) auto}.pos-invoice-entry-actions{display:flex;align-items:center;justify-content:flex-end;gap:16px}.pos-invoice-entry-actions>button{flex:none;white-space:nowrap}
+
   }</style></head>
   <body>
     <header class="topbar">
@@ -5068,9 +5070,10 @@ html { min-width:0; height:100%; overflow:hidden; }
 <section class="crm-setting-section" data-pos-setting="invoice-entry" aria-labelledby="posInvoiceTitle" aria-describedby="posInvoiceIntro">
   <div class="app-setting-header"><h3 id="posInvoiceTitle">Meta POS 电子发票设置</h3><p class="crm-setting-intro" id="posInvoiceIntro">门店手动开票功能入口</p></div>
   <div class="pos-setting-fields">
-    <div class="pos-setting-field">
+    <div class="pos-setting-field pos-invoice-entry-row">
       <span id="posAppInvoiceLabel">电子发票入口</span>
-      <button type="button" class="pos-switch" role="switch" id="posAppInvoice" name="enabled" data-on="on" data-off="off" data-default="on" aria-checked="true" aria-labelledby="posAppInvoiceLabel" data-confirm-name="电子发票入口"></button>
+      <div class="pos-invoice-entry-actions"><button type="button" class="crm-inline-link" id="posInvoiceGoSettings">去设置</button>
+      <button type="button" class="pos-switch" role="switch" id="posAppInvoice" name="enabled" data-on="on" data-off="off" data-default="on" aria-checked="true" aria-labelledby="posAppInvoiceLabel" data-confirm-name="电子发票入口"></button></div>
     </div>
     <p class="pos-setting-error" data-pos-error role="alert" hidden></p>
   </div>
